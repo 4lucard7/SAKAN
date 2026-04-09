@@ -21,13 +21,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// ── Authentification (publiques) ─────────────────────────────────────────
+// Authentification (publiques)
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login',    [AuthController::class, 'login']);
 });
 
-// ── Routes protégées (Sanctum) ───────────────────────────────────────────
+
+//  Routes protégées (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
 
     // Auth
@@ -37,32 +38,32 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
-    // ── Tiers ─────────────────────────────────────────────────────
+    // Tiers 
     Route::apiResource('tiers', TierController::class);
 
-    // ── Dettes / Créances ─────────────────────────────────────────
+    //Dettes / Créances
     Route::apiResource('debts', DebtController::class);
     Route::patch('/debts/{id}/rembourser', [DebtController::class, 'rembourser']);
 
-    // ── Véhicule ──────────────────────────────────────────────────
+    // Véhicule
     Route::get('/voiture',    [VoitureController::class, 'show']);
     Route::post('/voiture',   [VoitureController::class, 'store']);
     Route::put('/voiture',    [VoitureController::class, 'update']);
     Route::delete('/voiture', [VoitureController::class, 'destroy']);
 
-    // ── Maintenances véhicule ─────────────────────────────────────
+    //  Maintenances véhicule
     Route::get('/voiture/maintenances',        [MaintenanceController::class, 'index']);
     Route::post('/voiture/maintenances',       [MaintenanceController::class, 'store']);
     Route::get('/voiture/maintenances/{id}',   [MaintenanceController::class, 'show']);
     Route::put('/voiture/maintenances/{id}',   [MaintenanceController::class, 'update']);
     Route::delete('/voiture/maintenances/{id}',[MaintenanceController::class, 'destroy']);
 
-    // ── Charges fixes ─────────────────────────────────────────────
+    // Charges fixes
     Route::get('/charges/historique',         [ChargeController::class, 'historique']);
     Route::apiResource('charges', ChargeController::class);
     Route::patch('/charges/{id}/statut',      [ChargeController::class, 'updateStatut']);
 
-    // ── Notifications ─────────────────────────────────────────────
+    //  Notifications
     Route::get('/notifications',              [NotificationController::class, 'index']);
     Route::patch('/notifications/{id}/lire',  [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/lire-tout',   [NotificationController::class, 'markAllAsRead']);
