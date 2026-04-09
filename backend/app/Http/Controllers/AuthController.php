@@ -52,7 +52,8 @@ class AuthController extends Controller
             ]);
         }
 
-        $user  = Auth::user();
+        /** @var User $user */
+        $user = Auth::user();
         // Révoque les anciens tokens pour ce device (mono-utilisateur)
         $user->tokens()->delete();
         $token = $user->createToken('sakan-token')->plainTextToken;
