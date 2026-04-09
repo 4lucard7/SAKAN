@@ -8,29 +8,43 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     /**
-     * Définition du scheduler Laravel.
+     * Enregistrement des commandes Artisan personnalisées.
+     */
+    protected $commands = [
+        Commands\GenerateMonthlyCharges::class,
+        Commands\GenerateNotifications::class,
+    ];
+
+    /**
+     * Planification des tâches automatiques.
      *
-     * Pour activer le scheduler en production, ajouter cette ligne à crontab :
-     *   * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+     * Pour activer le scheduler en production, ajouter au cron du serveur :
+     *   * * * * * cd /path/to/sakan && php artisan schedule:run >> /dev/null 2>&1
+     *
+     * En développement, lancer : php artisan schedule:work
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Génération des charges fixes : le 1er de chaque mois à 00h05
-        $schedule->command('charges:generate-monthly')
-            ->monthlyOn(1, '00:05')
+        // 1er de chaque mois à minuit — génération des charges mensuelles
+        $schedule->command('charges:generate')
+            ->monthlyOn(1, '00:00')
             ->withoutOverlapping()
-            ->runInBackground();
+            ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-        // Génération des notifications d'alerte : chaque jour à 08h00
+        // Tous les jours à 08:00 — vérification des alertes et notifications
         $schedule->command('notifications:generate')
             ->dailyAt('08:00')
             ->withoutOverlapping()
-            ->runInBackground();
+            ->appendOutputTo(storage_path('logs/scheduler.log'));
     }
 
+    /**
+     * Enregistrement des commandes via auto-discovery.
+     */
     protected function commands(): void
     {
         $this->load(__DIR__ . '/Commands');
+
         require base_path('routes/console.php');
     }
 }
