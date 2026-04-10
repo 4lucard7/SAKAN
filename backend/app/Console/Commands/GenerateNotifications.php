@@ -7,192 +7,199 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
-/**
- * Tâche planifiée : s'exécute chaque jour.
- * Vérifie toutes les échéances et génère des notifications proactives :
- *   - Entretiens voiture J-14 (date) ou 500km du seuil
- *   - Responsabilités véhicule J-30 et J-7
- *   - Dettes/créances J-7 avant échéance
- *   - Charges en retard
- *
- * Lancer manuellement : php artisan notifications:generate
- */
 class GenerateNotifications extends Command
 {
+    /**
+     * Lance manuellement : php artisan notifications:generate
+     * Planifié automatiquement : tous les jours à 08:00
+     */
     protected $signature   = 'notifications:generate';
-    protected $description = 'Génère les notifications d\'alerte basées sur les échéances.';
+    protected $description = 'Génère les notifications proactives pour tous les utilisateurs (échéances, alertes véhicule, charges en retard).';
 
     public function handle(): int
     {
+        $now   = Carbon::now();
         $today = Carbon::today();
-        $this->info("Génération des notifications ({$today->toDateString()})...");
-
-        $users = User::with(['voiture.maintenances', 'debts', 'charges'])->get();
         $total = 0;
 
-        foreach ($users as $user) {
-            $total += $this->notifierVehicule($user, $today);
-            $total += $this->notifierFinances($user, $today);
-            $total += $this->notifierCharges($user, $today);
-        }
+        $this->info('Génération des notifications — ' . $today->toDateString());
 
-        $this->info("✓ {$total} notification(s) créée(s).");
+        foreach (User::all() as $user) {
+            $count = 0;
 
-        return Command::SUCCESS;
-    }
+            // ────────────────────────────────────────────────────────
+            // 1. DETTES — alerte J-7 avant due_date
+            // ────────────────────────────────────────────────────────
+            $dettes = $user->debts()
+                ->whereNotNull('due_date')
+                ->whereRaw("reste > 0")
+                ->get();
 
-    // ──────────────────────────────────────────────────────────────
-    // Véhicule : responsabilités + maintenances
-    // ──────────────────────────────────────────────────────────────
-    private function notifierVehicule(User $user, Carbon $today): int
-    {
-        $count   = 0;
-        $voiture = $user->voiture;
+            foreach ($dettes as $dette) {
+                $joursRestants = $today->diffInDays(Carbon::parse($dette->due_date), false);
 
-        if (!$voiture) return 0;
+                if ($joursRestants !== 7) continue; // exactement J-7
 
-        // Responsabilités administratives
-        $docs = [
-            'assurance'          => ['expiry' => $voiture->assurance_expiry,          'label' => "l'assurance"],
-            'vignette'           => ['expiry' => $voiture->vignette_expiry,           'label' => 'la vignette'],
-            'controle_technique' => ['expiry' => $voiture->controle_technique_expiry, 'label' => 'le contrôle technique'],
-            'carte_grise'        => ['expiry' => $voiture->carte_grise_expiry,        'label' => 'la carte grise'],
-        ];
+                if ($this->notifExiste($user->id, 'finances', $dette->id, 'debt', $today)) continue;
 
-        foreach ($docs as $key => $info) {
-            if (!$info['expiry']) continue;
+                $label = $dette->type === 'outflow' ? 'dette envers' : 'créance de';
+                Notification::create([
+                    'user_id'        => $user->id,
+                    'type'           => 'finances',
+                    'message'        => "Rappel : votre {$label} {$dette->tier->name} de {$dette->reste} MAD arrive à échéance dans 7 jours ({$dette->due_date->format('d/m/Y')}).",
+                    'is_read'        => false,
+                    'reference_type' => 'debt',
+                    'reference_id'   => $dette->id,
+                ]);
+                $count++;
+            }
 
-            $daysLeft = $today->diffInDays($info['expiry'], false);
+            // ────────────────────────────────────────────────────────
+            // 2. CHARGES — passage en retard le lendemain du jour d'échéance
+            // ────────────────────────────────────────────────────────
+            $charges = $user->charges()
+                ->where('mois', $now->month)
+                ->where('annee', $now->year)
+                ->where('statut', 'en_attente')
+                ->get();
 
-            foreach ([30, 7] as $seuil) {
-                if ((int) $daysLeft === $seuil) {
-                    if ($this->notifExiste($user->id, 'responsabilite', $voiture->id, "j{$seuil}_{$key}")) continue;
+            foreach ($charges as $charge) {
+                // Jour d'échéance dépassé ?
+                $echeance = Carbon::create($now->year, $now->month, $charge->jour_echeance);
+                if ($today->lte($echeance)) continue;
+
+                // Met à jour le statut en base
+                $charge->statut = 'en_retard';
+                $charge->save();
+
+                if ($this->notifExiste($user->id, 'charges', $charge->id, 'charge', $today)) continue;
+
+                Notification::create([
+                    'user_id'        => $user->id,
+                    'type'           => 'charges',
+                    'message'        => "La charge \"{$charge->libelle}\" ({$charge->montant} MAD) est en retard depuis le {$echeance->format('d/m/Y')}.",
+                    'is_read'        => false,
+                    'reference_type' => 'charge',
+                    'reference_id'   => $charge->id,
+                ]);
+                $count++;
+            }
+
+            // ────────────────────────────────────────────────────────
+            // 3. VÉHICULE — responsabilités (J-30 et J-7)
+            // ────────────────────────────────────────────────────────
+            $voiture = $user->voiture;
+
+            if ($voiture) {
+                $docs = [
+                    'assurance'          => $voiture->assurance_expiry,
+                    'vignette'           => $voiture->vignette_expiry,
+                    'contrôle technique' => $voiture->controle_technique_expiry,
+                    'carte grise'        => $voiture->carte_grise_expiry,
+                ];
+
+                foreach ($docs as $label => $expiry) {
+                    if (!$expiry) continue;
+
+                    $expiryDate    = Carbon::parse($expiry);
+                    $joursRestants = $today->diffInDays($expiryDate, false);
+
+                    if (!in_array($joursRestants, [30, 7])) continue;
+
+                    $key = "responsabilite_{$label}_{$joursRestants}j";
+                    if ($this->notifExisteParMessage($user->id, $key, $today)) continue;
 
                     Notification::create([
                         'user_id'        => $user->id,
                         'type'           => 'responsabilite',
-                        'message'        => "⚠️ {$voiture->car_name} : {$info['label']} expire dans {$seuil} jour(s) ({$info['expiry']->toDateString()}).",
+                        'message'        => "Votre {$label} expire dans {$joursRestants} jours ({$expiryDate->format('d/m/Y')}). Pensez à le renouveler.",
+                        'is_read'        => false,
                         'reference_type' => 'voiture',
                         'reference_id'   => $voiture->id,
                     ]);
                     $count++;
                 }
-            }
-        }
 
-        // Maintenances
-        foreach ($voiture->maintenances as $m) {
-            // Alerte date J-14
-            if ($m->prochaine_date) {
-                $daysLeft = $today->diffInDays(Carbon::parse($m->prochaine_date), false);
-                if ((int) $daysLeft === 14) {
-                    if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'j14_date')) {
-                        Notification::create([
-                            'user_id'        => $user->id,
-                            'type'           => 'maintenance',
-                            'message'        => "🔧 {$voiture->car_name} : {$m->part_name} à prévoir dans 14 jours (le {$m->prochaine_date}).",
-                            'reference_type' => 'voiture_maintenance',
-                            'reference_id'   => $m->id,
-                        ]);
-                        $count++;
+                // ────────────────────────────────────────────────────
+                // 4. MAINTENANCES — J-14 date OU 500 km du seuil
+                // ────────────────────────────────────────────────────
+                foreach ($voiture->maintenances as $m) {
+                    // Alerte par date — J-14
+                    if ($m->duration && $m->last_change_date) {
+                        $prochaineDate = Carbon::parse($m->last_change_date)->addMonths($m->duration);
+                        $joursRestants = $today->diffInDays($prochaineDate, false);
+
+                        if ($joursRestants === 14) {
+                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_date', $today)) {
+                                Notification::create([
+                                    'user_id'        => $user->id,
+                                    'type'           => 'maintenance',
+                                    'message'        => "Entretien \"{$m->part_name}\" prévu dans 14 jours ({$prochaineDate->format('d/m/Y')}). Pensez à planifier l'intervention.",
+                                    'is_read'        => false,
+                                    'reference_type' => 'maintenance',
+                                    'reference_id'   => $m->id,
+                                ]);
+                                $count++;
+                            }
+                        }
+                    }
+
+                    // Alerte par kilométrage — à 500 km du seuil
+                    if ($m->limit_km && $m->kilometrage_actuel) {
+                        $prochaineKm   = $m->kilometrage_actuel + $m->limit_km;
+                        $kmRestants    = $prochaineKm - $voiture->current_km;
+
+                        if ($kmRestants > 0 && $kmRestants <= 500) {
+                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_km', $today)) {
+                                Notification::create([
+                                    'user_id'        => $user->id,
+                                    'type'           => 'maintenance',
+                                    'message'        => "Entretien \"{$m->part_name}\" dans {$kmRestants} km (seuil : {$prochaineKm} km). Votre kilométrage actuel : {$voiture->current_km} km.",
+                                    'is_read'        => false,
+                                    'reference_type' => 'maintenance',
+                                    'reference_id'   => $m->id,
+                                ]);
+                                $count++;
+                            }
+                        }
                     }
                 }
             }
 
-            // Alerte kilométrage : 500 km du seuil
-            if ($m->prochain_km && $voiture->current_km) {
-                $kmRestants = $m->prochain_km - $voiture->current_km;
-                if ($kmRestants > 0 && $kmRestants <= 500) {
-                    if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'km500')) {
-                        Notification::create([
-                            'user_id'        => $user->id,
-                            'type'           => 'maintenance',
-                            'message'        => "🔧 {$voiture->car_name} : {$m->part_name} dans {$kmRestants} km (seuil : {$m->prochain_km} km).",
-                            'reference_type' => 'voiture_maintenance',
-                            'reference_id'   => $m->id,
-                        ]);
-                        $count++;
-                    }
-                }
+            $total += $count;
+            if ($count > 0) {
+                $this->line("  ✓ {$user->email} — {$count} notification(s) créée(s).");
             }
         }
 
-        return $count;
+        $this->info("Terminé. {$total} notification(s) générée(s) au total.");
+
+        return Command::SUCCESS;
     }
 
-    // ──────────────────────────────────────────────────────────────
-    // Finances : dettes/créances J-7
-    // ──────────────────────────────────────────────────────────────
-    private function notifierFinances(User $user, Carbon $today): int
-    {
-        $count = 0;
-
-        foreach ($user->debts as $debt) {
-            if (!$debt->due_date || $debt->statut === 'solde') continue;
-
-            $daysLeft = $today->diffInDays($debt->due_date, false);
-
-            if ((int) $daysLeft === 7) {
-                if (!$this->notifExiste($user->id, 'finances', $debt->id, 'j7')) {
-                    $typeLabel = $debt->type === 'outflow' ? 'dette' : 'créance';
-                    $tier      = $debt->tier->name ?? 'inconnu';
-                    Notification::create([
-                        'user_id'        => $user->id,
-                        'type'           => 'finances',
-                        'message'        => "💰 {$typeLabel} avec {$tier} : échéance dans 7 jours ({$debt->due_date->toDateString()}). Reste : {$debt->reste} MAD.",
-                        'reference_type' => 'debt',
-                        'reference_id'   => $debt->id,
-                    ]);
-                    $count++;
-                }
-            }
-        }
-
-        return $count;
-    }
-
-    // ──────────────────────────────────────────────────────────────
-    // Charges : passage en retard automatique
-    // ──────────────────────────────────────────────────────────────
-    private function notifierCharges(User $user, Carbon $today): int
-    {
-        $count = 0;
-
-        foreach ($user->charges as $charge) {
-            if ($charge->statut !== 'en_attente' || !$charge->mois || !$charge->annee) continue;
-
-            $echeance = Carbon::createFromDate($charge->annee, $charge->mois, $charge->jour_echeance);
-
-            if ($today->gt($echeance)) {
-                $charge->statut = 'en_retard';
-                $charge->save();
-
-                if (!$this->notifExiste($user->id, 'charges', $charge->id, 'retard')) {
-                    Notification::create([
-                        'user_id'        => $user->id,
-                        'type'           => 'charges',
-                        'message'        => "📋 Charge en retard : {$charge->libelle} ({$charge->montant} MAD) — échéance dépassée le {$echeance->toDateString()}.",
-                        'reference_type' => 'charge',
-                        'reference_id'   => $charge->id,
-                    ]);
-                    $count++;
-                }
-            }
-        }
-
-        return $count;
-    }
-
-    // ──────────────────────────────────────────────────────────────
-    // Anti-doublon : vérifie si une notif similaire existe déjà aujourd'hui
-    // ──────────────────────────────────────────────────────────────
-    private function notifExiste(int $userId, string $type, int $refId, string $tag): bool
+    /**
+     * Vérifie si une notif pour cette entité a déjà été créée aujourd'hui.
+     * Empêche les doublons si la commande tourne plusieurs fois.
+     */
+    private function notifExiste(int $userId, string $type, int $refId, string $refType, Carbon $today): bool
     {
         return Notification::where('user_id', $userId)
             ->where('type', $type)
             ->where('reference_id', $refId)
-            ->whereDate('created_at', Carbon::today())
-            ->where('message', 'like', "%{$tag}%")
+            ->where('reference_type', $refType)
+            ->whereDate('created_at', $today)
+            ->exists();
+    }
+
+    /**
+     * Vérifie les doublons pour les notifs sans reference_id stable (responsabilités).
+     * On cherche par un mot-clé unique dans le message.
+     */
+    private function notifExisteParMessage(int $userId, string $keyword, Carbon $today): bool
+    {
+        return Notification::where('user_id', $userId)
+            ->where('message', 'like', "%{$keyword}%")
+            ->whereDate('created_at', $today)
             ->exists();
     }
 }
