@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+<<<<<<< HEAD:frontend/src/App.jsx
 import axios from "axios";
 
 function App() {
@@ -18,6 +19,30 @@ function App() {
         {data}
       </h1>
     </div>
+=======
+import { BrowserRouter ,Route,Routes } from "react-router-dom";
+import RegisterPage from "./components/register";
+
+
+
+function App() {
+  
+
+  return (
+
+    <BrowserRouter>
+      <Routes>
+        
+        <Route path="/register" element={<RegisterPage/>}/>
+    
+          
+        
+
+      </Routes>
+    </BrowserRouter>
+      
+   
+>>>>>>> 36c14119c264e108cccbdfe4ead065d1a7302823:src/App.jsx
   );
 }
 
