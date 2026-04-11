@@ -1,49 +1,31 @@
-import { useEffect, useState } from "react";
-<<<<<<< HEAD:frontend/src/App.jsx
-import axios from "axios";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import Login from './pages/auth/Login';
+import Dashboard from './pages/Dashboard';
+// import Tiers from './pages/Tiers';
+// import Debts from './pages/Debts';
+// import Voiture from './pages/Voiture';
+// import Charges from './pages/Charges';
 
-function App() {
-  const [data, setData] = useState("");
-
-  useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/test")
-      .then(res => {
-        setData(res.data.message);
-      })
-      .catch(err => console.log(err));
-  }, []);
-
-  return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-3xl font-bold text-blue-600">
-        {data}
-      </h1>
-    </div>
-=======
-import { BrowserRouter ,Route,Routes } from "react-router-dom";
-import RegisterPage from "./components/register";
-
-
-
-function App() {
-  
-
-  return (
-
-    <BrowserRouter>
-      <Routes>
-        
-        <Route path="/register" element={<RegisterPage/>}/>
-    
-          
-        
-
-      </Routes>
-    </BrowserRouter>
-      
-   
->>>>>>> 36c14119c264e108cccbdfe4ead065d1a7302823:src/App.jsx
-  );
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('token');
+  return token ? <Layout>{children}</Layout> : <Navigate to="/login" />;
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        {/* Protected Application Routes */}
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        {/* <Route path="/tiers" element={<ProtectedRoute><Tiers /></ProtectedRoute>} />
+        <Route path="/debts" element={<ProtectedRoute><Debts /></ProtectedRoute>} />
+        <Route path="/voiture" element={<ProtectedRoute><Voiture /></ProtectedRoute>} />
+        <Route path="/charges" element={<ProtectedRoute><Charges /></ProtectedRoute>} /> 
+        */}
+      </Routes>
+    </Router>
+  );
+}
