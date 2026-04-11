@@ -27,7 +27,38 @@
     "name": "الاسم",
     "amount": "المبلغ",
     "date": "التاريخ",
-    "history": "السجل"
+    "history": "السجل",
+    "notes": "ملاحظات",
+    "optional": "اختياري",
+    "rembourser": "تسديد"
+  },
+  "status": {
+    "paid": "تم الدفع",
+    "pending": "في الانتظار",
+    "overdue": "متأخر",
+    "payee": "مدفوع",
+    "en_attente": "في الانتظار",
+    "en_retard": "متأخر",
+    "dette": "دين",
+    "creance": "مستحق"
+  },
+  "debts": {
+    "title": "تتبع الديون",
+    "add_debt": "إضافة معاملة",
+    "total_prete": "إجمالي المقرض",
+    "total_rembourse": "إجمالي المسدد",
+    "reste": "المتبقي",
+    "all_transactions": "جميع المعاملات",
+    "tier_name": "اسم المعني",
+    "due_date": "تاريخ الاستحقاق",
+    "placeholder_search": "بحث بالاسم...",
+    "enregistrer_rembourse": "تسجيل سداد",
+    "form_tier": "اختر طرفاً",
+    "form_type": "نوع المعاملة",
+    "form_notes": "ملاحظات اختيارية...",
+    "summary_prete": "إجمالي المقرض",
+    "summary_rembourse": "المسدد سابقاً",
+    "summary_reste": "المتبقي"
   },
   "dashboard": {
     "title": "لوحة القيادة",

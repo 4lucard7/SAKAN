@@ -27,7 +27,38 @@
     "name": "Nom",
     "amount": "Montant",
     "date": "Date",
-    "history": "Historique"
+    "history": "Historique",
+    "notes": "Notes",
+    "optional": "optionnel",
+    "rembourser": "Rembourser"
+  },
+  "status": {
+    "paid": "PAYÉ",
+    "pending": "EN ATTENTE",
+    "overdue": "EN RETARD",
+    "payee": "Payée",
+    "en_attente": "En Attente",
+    "en_retard": "En Retard",
+    "dette": "Dette",
+    "creance": "Créance"
+  },
+  "debts": {
+    "title": "Suivi des dettes",
+    "add_debt": "Ajouter transaction",
+    "total_prete": "TOTAL PRÊTÉ",
+    "total_rembourse": "TOTAL REMBOURSÉ",
+    "reste": "RESTE",
+    "all_transactions": "Toutes les transactions",
+    "tier_name": "Nom de l'intéressé",
+    "due_date": "Échéance",
+    "placeholder_search": "Rechercher par nom...",
+    "enregistrer_rembourse": "Enregistrer un remboursement",
+    "form_tier": "Sélectionner un tiers",
+    "form_type": "Type de transaction",
+    "form_notes": "Notes optionnelles...",
+    "summary_prete": "Total prêté",
+    "summary_rembourse": "Déjà remboursé",
+    "summary_reste": "Reste"
   },
   "dashboard": {
     "title": "Tableau de Bord",

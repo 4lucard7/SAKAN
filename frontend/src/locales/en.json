@@ -27,7 +27,38 @@
     "name": "Name",
     "amount": "Amount",
     "date": "Date",
-    "history": "History"
+    "history": "History",
+    "notes": "Notes",
+    "optional": "optional",
+    "rembourser": "Repay"
+  },
+  "status": {
+    "paid": "PAID",
+    "pending": "PENDING",
+    "overdue": "OVERDUE",
+    "payee": "Paid",
+    "en_attente": "Pending",
+    "en_retard": "Overdue",
+    "dette": "Debt",
+    "creance": "Receivable"
+  },
+  "debts": {
+    "title": "Debt Tracking",
+    "add_debt": "Add transaction",
+    "total_prete": "TOTAL LENT",
+    "total_rembourse": "TOTAL REPAID",
+    "reste": "REMAINING",
+    "all_transactions": "All Transactions",
+    "tier_name": "Interest Name",
+    "due_date": "Due Date",
+    "placeholder_search": "Search by name...",
+    "enregistrer_rembourse": "Register a repayment",
+    "form_tier": "Select a tier",
+    "form_type": "Transaction type",
+    "form_notes": "Optional notes...",
+    "summary_prete": "Total lent",
+    "summary_rembourse": "Already repaid",
+    "summary_reste": "Remaining"
   },
   "dashboard": {
     "title": "Dashboard",
