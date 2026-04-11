@@ -87,7 +87,7 @@ export default function RegisterPage() {
 
       <footer className="text-center py-4 text-xs text-gray-400 flex items-center justify-center gap-1">
         <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M12 8v4l2 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-        SECURE AES-256 ENCRYPTION
+        SAKAN 2026 © Tous droits réservés
       </footer>
     </div>
   )
