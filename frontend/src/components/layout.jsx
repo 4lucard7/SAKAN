@@ -1,13 +1,13 @@
-import React from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export default function Layout({ children }) {
+  const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // Clear token and redirect to login
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -68,7 +68,7 @@ export default function Layout({ children }) {
         {/* Top Header */}
         <header className="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center shadow-sm">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Welcome back, User</h2>
+            <h2 className="text-xl font-bold text-gray-800">Welcome back, {user?.name || 'User'}</h2>
           </div>
           
           <div className="flex items-center gap-5">

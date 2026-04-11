@@ -1,74 +1,94 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import { authAPI } from '../services/api'
-import toast from 'react-hot-toast'
 
-const AuthContext = createContext(null)
+const AuthContext = createContext()
 
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(() => {
-    try { return JSON.parse(localStorage.getItem('sakan_user')) } catch { return null }
-  })
-  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    const token = localStorage.getItem('sakan_token')
+    if (!token) {
+      setLoading(false)
+      return
+    }
+
+    try {
+      const { data } = await authAPI.me()
+      setUser(data)
+    } catch (err) {
+      console.error('Auth check failed:', err)
+      localStorage.removeItem('sakan_token')
+      localStorage.removeItem('sakan_user')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const login = async (credentials) => {
     setLoading(true)
     try {
       const { data } = await authAPI.login(credentials)
-      localStorage.setItem('sakan_token', data.token)
-      localStorage.setItem('sakan_user',  JSON.stringify(data.user))
-      setUser(data.user)
-      toast.success('Bienvenue ' + data.user.name + ' !')
+      const { user, token } = data
+      localStorage.setItem('sakan_token', token)
+      localStorage.setItem('sakan_user', JSON.stringify(user))
+      setUser(user)
       return { success: true }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Identifiants incorrects.'
-      toast.error(msg)
-      return { success: false, error: msg }
+      return { 
+        success: false, 
+        message: err.response?.data?.message || 'Identifiants incorrects' 
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const register = async (data) => {
+  const register = async (userData) => {
     setLoading(true)
     try {
-      const { data: res } = await authAPI.register(data)
-      localStorage.setItem('sakan_token', res.token)
-      localStorage.setItem('sakan_user',  JSON.stringify(res.user))
-      setUser(res.user)
-      toast.success('Compte créé avec succès !')
+      const { data } = await authAPI.register(userData)
+      const { user, token } = data
+      localStorage.setItem('sakan_token', token)
+      localStorage.setItem('sakan_user', JSON.stringify(user))
+      setUser(user)
       return { success: true }
     } catch (err) {
       const errors = err.response?.data?.errors
-      if (errors) {
-        Object.values(errors).flat().forEach(e => toast.error(e))
-      } else {
-        toast.error(err.response?.data?.message || 'Erreur lors de l\'inscription.')
+      const message = errors
+        ? Object.values(errors).flat().join(' ')
+        : err.response?.data?.message || 'Erreur lors de l\'inscription'
+      return {
+        success: false,
+        message,
       }
-      return { success: false }
     } finally {
       setLoading(false)
     }
   }
 
-  const logout = useCallback(async () => {
-    try { await authAPI.logout() } catch {}
-    localStorage.removeItem('sakan_token')
-    localStorage.removeItem('sakan_user')
-    setUser(null)
-    toast.success('Déconnecté.')
-  }, [])
+  const logout = async () => {
+    try {
+      await authAPI.logout()
+    } catch (err) {
+      console.error('Logout failed:', err)
+    } finally {
+      localStorage.removeItem('sakan_token')
+      localStorage.removeItem('sakan_user')
+      setUser(null)
+    }
+  }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAuth: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === null) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+export const useAuth = () => useContext(AuthContext)

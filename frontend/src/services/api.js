@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
 })
 
@@ -27,10 +28,10 @@ api.interceptors.response.use(
 
 // ── Auth ──────────────────────────────────────────────────────────────
 export const authAPI = {
-  register: (data) => api.post('/auth/register', data),
-  login:    (data) => api.post('/auth/login', data),
-  logout:   ()     => api.post('/auth/logout'),
-  me:       ()     => api.get('/auth/me'),
+  register: (data) => api.post('/register', data),
+  login:    (data) => api.post('/login', data),
+  logout:   ()     => api.post('/logout'),
+  me:       ()     => api.get('/me'),
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────

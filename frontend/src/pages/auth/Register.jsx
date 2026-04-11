@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export default function RegisterPage() {
@@ -8,13 +8,19 @@ export default function RegisterPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', password: '', password_confirmation: '' })
   const [show, setShow] = useState(false)
+  const [error, setError] = useState(null)
 
   const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
   const submit = async (e) => {
     e.preventDefault()
+    setError(null)
     const res = await register(form)
-    if (res.success) navigate('/dashboard')
+    if (res.success) {
+      navigate('/dashboard')
+    } else {
+      setError(res.message)
+    }
   }
 
   return (
@@ -38,6 +44,12 @@ export default function RegisterPage() {
           </div>
           <span className="text-[#2196F3] font-extrabold text-xl tracking-widest uppercase">Sakan</span>
         </div>
+
+        {error && (
+          <div className="rounded-xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 mb-4 text-sm">
+            {error}
+          </div>
+        )}
 
           <form onSubmit={submit} className="flex flex-col gap-4">
             <div>
