@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { maintenanceAPI, voitureAPI } from '../services/api'
-import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge } from '../components/ui/index'
+import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge } from '../components/Ui'
 import { Plus, Pencil, Trash2, Wrench, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 

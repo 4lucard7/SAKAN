@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { debtsAPI, tiersAPI } from '../services/api'
-import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/ui/index'
+import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/Ui'
 import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, MoreVertical, Coins } from 'lucide-react'
 import toast from 'react-hot-toast'
 

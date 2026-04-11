@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { chargesAPI } from '../services/api'
-import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/ui/index'
+import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/Ui'
 import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronUp, Clock, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { voitureAPI } from '../services/api'
-import { Modal, PageHeader, Spinner, Field } from '../components/ui/index'
+import { Modal, PageHeader, Spinner, Field } from '../components/Ui'
 import { Plus, Pencil, Car, Gauge, Shield, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 

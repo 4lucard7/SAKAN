@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { notificationsAPI } from '../services/api'
-import { PageHeader, EmptyState, Spinner } from '../components/ui/index'
+import { PageHeader, EmptyState, Spinner } from '../components/Ui'
 import { Bell, CheckCheck, Trash2, Wrench, CreditCard, Car, Receipt, MoreVertical, Circle, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dashboardAPI, tiersAPI } from '../services/api'
-import { Spinner, Badge } from '../components/ui/index'
+import { Spinner, Badge } from '../components/Ui'
 import { TrendingUp, TrendingDown, Car, AlertTriangle, ChevronRight } from 'lucide-react'
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
