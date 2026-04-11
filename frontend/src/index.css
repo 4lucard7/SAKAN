@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,6 +12,15 @@
     color: #0f172a;
     -webkit-font-smoothing: antialiased;
   }
+  
+  /* Fallback to Arabic font when lang="ar" */
+  [lang="ar"] body {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+}
+
+.font-arabic {
+  font-family: 'IBM Plex Sans Arabic', sans-serif;
 }
 
 @layer components {
