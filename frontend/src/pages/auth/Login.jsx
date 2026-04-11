@@ -18,19 +18,27 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#caf0f8] via-[#e0f7fa] to-[#f0f9ff] flex flex-col">
+    <div className="min-h-screen  from-[#caf0f8] via-[#e0f7fa] to-[#f0f9ff] flex flex-col">
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl shadow-hover w-full max-w-md p-8 fade-in">
           {/* Logo */}
-          <div className="flex flex-col items-center gap-2 mb-8">
-            <div className="w-12 h-12 bg-sakan-blue rounded-2xl flex items-center justify-center shadow-md">
-              <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7">
-                <path d="M4 20 L12 6 L20 20" stroke="white" strokeWidth="2.5" strokeLinejoin="round" fill="none"/>
-                <circle cx="12" cy="6" r="2.5" fill="white"/>
-              </svg>
-            </div>
-            <span className="font-display font-bold text-2xl text-sakan-dark tracking-tight">SAKAN</span>
+
+          <div className="flex items-center justify-center gap-2 mb-6">
+          <div className="w-9 h-9 rounded-full bg-[#2196F3] flex items-center justify-center shadow">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M10 2L18 10L10 18L2 10L10 2Z"
+                fill="white"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path d="M10 6L14 10L10 14L6 10L10 6Z" fill="#2196F3" strokeLinejoin="round" />
+            </svg>
           </div>
+          <span className="text-[#2196F3] font-extrabold text-xl tracking-widest uppercase">Sakan</span>
+        </div>
+
 
           <p className="text-sm text-gray-500 text-center mb-6">
             Entrez vos identifiants pour accéder à votre tableau de bord
@@ -69,14 +77,14 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary justify-center mt-2">
+            <button type="submit" disabled={loading} className="bg-[#2196F3] justify-center text-white font-semibold  rounded-xl py-2 hover:bg-[#1976D2] transition">
               {loading ? 'Connexion...' : 'Login →'}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-5">
             Vous n'avez pas de compte ?{' '}
-            <Link to="/register" className="text-sakan-blue font-semibold hover:underline">S'inscrire</Link>
+            <Link to="/register" className="text-[#2196F3] font-semibold hover:underline">S'inscrire</Link>
           </p>
         </div>
       </main>
