@@ -11,8 +11,6 @@
 
 ## 📸 Aperçu
 
-> [!NOTE]
-> *Ajoutez ici des captures d'écran de votre tableau de bord et des fonctionnalités principales.*
 
 | Dashboard | Gestion des Charges |
 | :---: | :---: |
