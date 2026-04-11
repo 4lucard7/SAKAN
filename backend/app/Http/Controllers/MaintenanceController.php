@@ -25,7 +25,11 @@ class MaintenanceController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $voiture      = $this->getVoiture($request);
+        $voiture = $request->user()->voiture;
+        if (!$voiture) {
+            return response()->json([]);
+        }
+
         $maintenances = $voiture->maintenances()->get()->map(function ($m) {
             $m->prochaine_date  = $m->prochaine_date;
             $m->prochain_km     = $m->prochain_km;

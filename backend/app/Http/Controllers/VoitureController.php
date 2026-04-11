@@ -17,7 +17,7 @@ class VoitureController extends Controller
         $voiture = $request->user()->voiture;
 
         if (!$voiture) {
-            return response()->json(['message' => 'Aucun véhicule enregistré.'], 404);
+            return response()->json(null, 200);
         }
 
         $voiture->responsabilites = $voiture->responsabilites;
