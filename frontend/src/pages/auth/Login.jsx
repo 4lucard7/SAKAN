@@ -1,20 +1,48 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock ,AlertCircle} from 'lucide-react'
 
 export default function LoginPage() {
   const { login, loading } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })
   const [show, setShow] = useState(false)
+  const [emailError, setEmailError] = useState(false)
+  const [passwordError, setPasswordError] = useState(false)
+  const [backendError, setBackendError] = useState("");
+  
 
-  const handle = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  const handle = (e) => {
+    const {name,value}=e.target;
+    setForm(f => ({ ...f, [name]: value }))
+     if (name === "email") {
+      setEmailError(
+        value.length > 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+      )
+    }
+    if (name === "password") {
+      setPasswordError(value.trim() === "")
+    }
+
+  } 
 
   const submit = async (e) => {
     e.preventDefault()
+    setBackendError("")
+    const isvalidEmail=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+    const isvalidPassword=form.password.trim() !== "";
+    setEmailError(!isvalidEmail);
+    setPasswordError(!isvalidPassword)
+    if(!isvalidEmail || !isvalidPassword) return;
     const res = await login(form)
-    if (res.success) navigate('/dashboard')
+    if (res.success){
+      navigate('/dashboard')
+    } 
+    else{
+      setBackendError("Email ou mot de passe incorrect"); setForm({email:form.email ,password:""})
+
+    } 
   }
 
   return (
@@ -50,12 +78,22 @@ export default function LoginPage() {
               <div className="relative">
                 <Mail size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  name="email" type="email" required
+                  name="email" type="email" 
                   value={form.email} onChange={handle}
                   placeholder="name@example.com"
-                  className="input pl-9"
+                  className={`input pl-9  ${emailError ? "border-red-400" : "border-gray-200 focus:border-[#2196F3]"}
+                  `}
                 />
               </div>
+              {emailError && (
+              <div className="flex items-center gap-1 mt-1">
+                <AlertCircle className="w-3 h-3 text-red-500" />
+                <span className="text-xs text-red-500">
+                  Adresse e-mail invalide
+                </span>
+              </div>
+            )}
+
             </div>
 
             <div>
@@ -65,7 +103,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
-                  name="password" type={show ? 'text' : 'password'} required
+                  name="password" type={show ? 'text' : 'password'} 
                   value={form.password} onChange={handle}
                   placeholder="••••••••"
                   className="input pl-9 pr-10"
@@ -75,6 +113,17 @@ export default function LoginPage() {
                   {show ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
+              {passwordError && (
+                <span className='text-xs text-red-500'>le mot de passe est obligatoire</span>
+              )}
+              {backendError && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-lg mb-4 mt-2">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-xs">
+                        {backendError}
+                    </span>
+                </div>
+              )}
             </div>
 
             <button type="submit" disabled={loading} className="bg-[#2196F3] justify-center text-white font-semibold  rounded-xl py-2 hover:bg-[#1976D2] transition">
