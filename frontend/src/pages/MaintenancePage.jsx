@@ -3,8 +3,10 @@ import { maintenanceAPI, voitureAPI } from '../services/api'
 import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge } from '../components/Ui'
 import { Plus, Pencil, Trash2, Wrench, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 function MaintenanceForm({ initial = {}, onSave, loading }) {
+  const { t } = useTranslation()
   const [form, setForm] = useState({
     part_name: '', kilometrage_actuel: '', limit_km: '',
     last_change_date: '', duration: '', cost: '', notes: '',
@@ -13,43 +15,43 @@ function MaintenanceForm({ initial = {}, onSave, loading }) {
   const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   return (
     <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
-      <Field label="Pièce / Type d'entretien" required>
+      <Field label={t('maintenance.part_name')} required>
         <input name="part_name" required value={form.part_name} onChange={h}
-          className="input" placeholder="Vidange, Pneus, Freins..." />
+          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Vidange, Pneus, Freins..." />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Km actuel" required>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Field label={t('vehicle.current_km')} required>
           <input name="kilometrage_actuel" type="number" min="0" required
-            value={form.kilometrage_actuel} onChange={h} className="input" placeholder="45200" />
+            value={form.kilometrage_actuel} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="45200" />
         </Field>
-        <Field label="Km limite (intervalle)">
+        <Field label={t('maintenance.interval')}>
           <input name="limit_km" type="number" min="0"
-            value={form.limit_km} onChange={h} className="input" placeholder="10000" />
+            value={form.limit_km} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="10000" />
         </Field>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Date du dernier changement" required>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Field label={t('maintenance.last_done').split('/')[0]} required>
           <input name="last_change_date" type="date" required
-            value={form.last_change_date} onChange={h} className="input" />
+            value={form.last_change_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
         </Field>
-        <Field label="Durée (mois)">
+        <Field label={t('maintenance.duration_months')}>
           <input name="duration" type="number" min="1" max="120"
-            value={form.duration} onChange={h} className="input" placeholder="6" />
+            value={form.duration} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="6" />
         </Field>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Coût (MAD)">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Field label={`${t('maintenance.cost')} (MAD)`}>
           <input name="cost" type="number" min="0" step="0.01"
-            value={form.cost} onChange={h} className="input" placeholder="0.00" />
+            value={form.cost} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
         </Field>
-        <Field label="Notes">
+        <Field label={t('common.notes')}>
           <input name="notes" value={form.notes} onChange={h}
-            className="input" placeholder="Optionnel..." />
+            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('common.optional')} />
         </Field>
       </div>
       <div className="flex justify-end pt-2">
         <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Sauvegarde...' : 'Enregistrer'}
+          {loading ? t('common.loading') : t('common.save')}
         </button>
       </div>
     </form>
@@ -57,17 +59,19 @@ function MaintenanceForm({ initial = {}, onSave, loading }) {
 }
 
 function AlerteBadge({ statut }) {
+  const { t } = useTranslation()
   if (!statut || statut === 'ok') return null
   const map = {
-    alerte_date:  { label: 'J-14',        color: 'bg-yellow-100 text-yellow-700' },
-    alerte_km:    { label: '≤ 500 km',    color: 'bg-orange-100 text-orange-700' },
-    depasse:      { label: 'Dépassé !',   color: 'bg-red-100 text-red-600'       },
+    alerte_date:  { label: t('maintenance.alert_j14'),        color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+    alerte_km:    { label: t('maintenance.alert_km500'),    color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
+    depasse:      { label: t('maintenance.alert_passed'),   color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'       },
   }
   const { label, color } = map[statut] || { label: statut, color: 'bg-gray-100 text-gray-500' }
   return <span className={`badge ${color} flex items-center gap-1`}><AlertTriangle size={10} />{label}</span>
 }
 
 export default function MaintenancePage() {
+  const { t, i18n } = useTranslation()
   const [maintenances, setMaintenances] = useState([])
   const [voiture,      setVoiture]      = useState(null)
   const [loading,      setLoading]      = useState(true)
@@ -88,131 +92,137 @@ export default function MaintenancePage() {
     setSaving(true)
     try {
       if (modal === 'create') {
-        await maintenanceAPI.create(form); toast.success('Maintenance ajoutée !')
+        await maintenanceAPI.create(form); toast.success(t('common.save'))
       } else {
-        await maintenanceAPI.update(modal.m.id, form); toast.success('Maintenance modifiée !')
+        await maintenanceAPI.update(modal.m.id, form); toast.success(t('common.save'))
       }
       setModal(null); load()
     } catch (err) {
       const errors = err.response?.data?.errors
       if (errors) Object.values(errors).flat().forEach(e => toast.error(e))
-      else toast.error(err.response?.data?.message || 'Erreur')
+      else toast.error(err.response?.data?.message || 'Error')
     } finally { setSaving(false) }
   }
 
   const del = async () => {
     setSaving(true)
     try {
-      await maintenanceAPI.delete(deleting.id); toast.success('Maintenance supprimée.')
+      await maintenanceAPI.delete(deleting.id); toast.success(t('common.delete'))
       setDeleting(null); load()
-    } catch { toast.error('Erreur de suppression.') }
+    } catch { toast.error('Error') }
     finally { setSaving(false) }
   }
 
   if (loading) return <div className="flex justify-center py-16"><Spinner size={32} /></div>
 
   if (!voiture) return (
-    <div className="flex flex-col items-center justify-center h-64 gap-3">
-      <Wrench size={40} className="text-gray-200" />
-      <p className="text-gray-400 font-medium">Enregistrez d'abord un véhicule.</p>
+    <div className="flex flex-col items-center justify-center h-64 gap-3 dark:bg-slate-900 dark:border-white/10 rounded-2xl">
+      <Wrench size={40} className="text-gray-200 dark:text-slate-800" />
+      <p className="text-gray-400 dark:text-slate-600 font-medium">{t('maintenance.register_car_first')}</p>
     </div>
   )
 
   return (
     <div className="fade-in flex flex-col gap-6">
       <PageHeader
-        title="Voiture Maintenance"
-        subtitle="Monitor and log service history for all your registered vehicles."
+        title={t('maintenance.title')}
+        subtitle={t('vehicle.subtitle')}
         action={
           <button className="btn-primary" onClick={() => setModal('create')}>
-            <Plus size={16} /> Ajouter maintenance
+            <Plus size={16} /> {t('maintenance.add')}
           </button>
         }
       />
 
       {/* Vehicle info */}
-      <div className="card flex items-center gap-4 py-4">
-        <div className="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
-          <Wrench size={18} className="text-sakan-blue" />
+      <div className="card flex items-center gap-4 py-4 dark:bg-slate-900 dark:border-white/10 transition-colors">
+        <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center">
+          <Wrench size={18} className="text-sakan-blue dark:text-sakan" />
         </div>
         <div>
-          <p className="font-display font-semibold text-gray-800">{voiture.car_name}</p>
-          <p className="text-xs text-gray-400">{Number(voiture.current_km).toLocaleString()} km actuels</p>
+          <p className="font-display font-semibold text-gray-800 dark:text-white transition-colors">{voiture.car_name}</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500">{Number(voiture.current_km).toLocaleString()} km actuels</p>
         </div>
         <div className="ml-auto flex gap-6 text-center">
           <div>
-            <p className="font-display font-bold text-xl text-sakan-blue">{maintenances.length}</p>
-            <p className="text-xs text-gray-400">Entretiens</p>
+            <p className="font-display font-bold text-xl text-sakan-blue dark:text-sakan">{maintenances.length}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{t('common.maintenance')}</p>
           </div>
           <div>
-            <p className="font-display font-bold text-xl text-orange-500">
+            <p className="font-display font-bold text-xl text-orange-500 dark:text-orange-400">
               {maintenances.filter(m => m.statut_alerte && m.statut_alerte !== 'ok').length}
             </p>
-            <p className="text-xs text-gray-400">Alertes</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{t('vehicle.alerts')}</p>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="card p-0 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-          <Wrench size={15} className="text-gray-400" />
-          <h2 className="font-display font-semibold text-gray-800">Maintenance History</h2>
+      <div className="card p-0 overflow-hidden dark:bg-slate-900 dark:border-white/10 transition-colors">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 flex items-center gap-2">
+          <Wrench size={15} className="text-gray-400 dark:text-slate-500" />
+          <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('maintenance.history')}</h2>
         </div>
         {maintenances.length === 0 ? (
-          <EmptyState icon="🔧" title="Aucun entretien" description="Ajoutez votre premier entretien pour commencer le suivi." />
+          <EmptyState icon="🔧" title={t('common.no_data')} description={t('maintenance.desc_no_maintenance')} />
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-xs text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                {['Part Name', 'Current KM', 'Limit KM', 'Last Change', 'Duration', 'Alerte', 'Actions'].map(h => (
-                  <th key={h} className="py-3 px-4 text-left font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {maintenances.map(m => (
-                <tr key={m.id} className="border-b border-gray-50 last:border-0 hover:bg-primary-50/40 transition-colors">
-                  <td className="py-3 px-4 font-medium text-gray-800">{m.part_name}</td>
-                  <td className="py-3 px-4">{Number(m.kilometrage_actuel).toLocaleString()} km</td>
-                  <td className={`py-3 px-4 ${m.statut_alerte === 'alerte_km' || m.statut_alerte === 'depasse' ? 'text-orange-500 font-semibold' : 'text-gray-400'}`}>
-                    {m.limit_km ? `${Number(m.limit_km).toLocaleString()} km` : '—'}
-                  </td>
-                  <td className="py-3 px-4">{new Date(m.last_change_date).toLocaleDateString('fr-FR')}</td>
-                  <td className="py-3 px-4 text-gray-500">
-                    {m.duration ? `${m.duration} mois` : '—'}
-                  </td>
-                  <td className="py-3 px-4">
-                    <AlerteBadge statut={m.statut_alerte} />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => setModal({ m })}
-                        className="p-1.5 rounded-lg hover:bg-primary-100 text-gray-400 hover:text-sakan-blue transition-colors">
-                        <Pencil size={13} />
-                      </button>
-                      <button onClick={() => setDeleting(m)}
-                        className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors">
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
+                  <th className="py-3 px-6 text-left font-medium">{t('maintenance.part_name')}</th>
+                  <th className="py-3 px-4 text-left font-medium">{t('vehicle.current_km')}</th>
+                  <th className="py-3 px-4 text-left font-medium">{t('maintenance.next_km').split(' ')[2]}</th>
+                  <th className="py-3 px-4 text-left font-medium">{t('maintenance.last_done').split(' ')[0]}</th>
+                  <th className="py-3 px-4 text-left font-medium">{t('maintenance.duration_months').split(' ')[0]}</th>
+                  <th className="py-3 px-4 text-left font-medium">{t('vehicle.alerts')}</th>
+                  <th className="py-3 px-6 text-left font-medium">{t('common.actions')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {maintenances.map(m => (
+                  <tr key={m.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-6 font-medium text-gray-800 dark:text-slate-200">{m.part_name}</td>
+                    <td className="py-3 px-4 dark:text-slate-400">{Number(m.kilometrage_actuel).toLocaleString()} km</td>
+                    <td className={`py-3 px-4 ${m.statut_alerte === 'alerte_km' || m.statut_alerte === 'depasse' ? 'text-orange-500 font-semibold dark:text-orange-400' : 'text-gray-400 dark:text-slate-600'}`}>
+                      {m.limit_km ? `${Number(m.limit_km).toLocaleString()} km` : '—'}
+                    </td>
+                    <td className="py-3 px-4 dark:text-slate-400">{new Date(m.last_change_date).toLocaleDateString(i18n.language)}</td>
+                    <td className="py-3 px-4 text-gray-500 dark:text-slate-500">
+                      {m.duration ? `${m.duration} ${t('maintenance.duration_months').split(' ')[1]}` : '—'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <AlerteBadge statut={m.statut_alerte} />
+                    </td>
+                    <td className="py-3 px-6">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setModal({ m })}
+                          className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                          <Pencil size={13} />
+                        </button>
+                        <button onClick={() => setDeleting(m)}
+                          className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <Modal open={!!modal} onClose={() => setModal(null)} size="lg"
-        title={modal === 'create' ? 'Ajouter un entretien' : 'Modifier l\'entretien'}>
+        title={modal === 'create' ? t('maintenance.add') : t('common.edit')}>
         <MaintenanceForm initial={modal?.m} onSave={save} loading={saving} />
       </Modal>
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)}
         onConfirm={del} loading={saving}
-        title="Supprimer l'entretien"
-        message={`Supprimer l'entretien "${deleting?.part_name}" ?`} />
+        title={t('common.delete')}
+        message={`${t('common.delete')} "${deleting?.part_name}" ?`} />
     </div>
   )
 }

@@ -3,28 +3,30 @@ import { tiersAPI } from '../services/api'
 import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, Field, Select } from '../components/Ui'
 import { Plus, Pencil, Trash2, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const TYPES = ['ami', 'famille', 'collègue', 'autre']
 
 function TierForm({ initial = {}, onSave, loading }) {
+  const { t } = useTranslation()
   const [form, setForm] = useState({ name: '', type: 'ami', contact: '', ...initial })
   const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   return (
     <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
-      <Field label="Nom" required>
-        <input name="name" required value={form.name} onChange={h} className="input" placeholder="Jean Dupont" />
+      <Field label={t('common.name')} required>
+        <input name="name" required value={form.name} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_name')} />
       </Field>
-      <Field label="Type" required>
+      <Field label={t('common.type')} required>
         <Select name="type" value={form.type} onChange={h}>
-          {TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+          {TYPES.map(tier_type => <option key={tier_type} value={tier_type} className="dark:bg-slate-900">{tier_type.charAt(0).toUpperCase() + tier_type.slice(1)}</option>)}
         </Select>
       </Field>
-      <Field label="Contact">
-        <input name="contact" value={form.contact} onChange={h} className="input" placeholder="+212 6XX XXX XXX" />
+      <Field label={t('common.contact')}>
+        <input name="contact" value={form.contact} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_contact')} />
       </Field>
       <div className="flex justify-end gap-2 pt-2">
         <button type="submit" disabled={loading} className="btn-primary">
-          {loading ? 'Sauvegarde...' : 'Enregistrer'}
+          {loading ? t('common.loading') : t('common.save')}
         </button>
       </div>
     </form>
@@ -32,6 +34,7 @@ function TierForm({ initial = {}, onSave, loading }) {
 }
 
 export default function TiersPage() {
+  const { t } = useTranslation()
   const [tiers,   setTiers]   = useState([])
   const [loading, setLoading] = useState(true)
   const [search,  setSearch]  = useState('')
@@ -45,41 +48,41 @@ export default function TiersPage() {
   }
   useEffect(load, [])
 
-  const filtered = tiers.filter(t =>
-    t.name.toLowerCase().includes(search.toLowerCase()) ||
-    t.type.toLowerCase().includes(search.toLowerCase())
+  const filtered = tiers.filter(t_item =>
+    t_item.name.toLowerCase().includes(search.toLowerCase()) ||
+    t_item.type.toLowerCase().includes(search.toLowerCase())
   )
 
   const save = async (form) => {
     setSaving(true)
     try {
       if (modal === 'create') {
-        await tiersAPI.create(form); toast.success('Tiers créé !')
+        await tiersAPI.create(form); toast.success(t('common.save'))
       } else {
-        await tiersAPI.update(modal.tier.id, form); toast.success('Tiers modifié !')
+        await tiersAPI.update(modal.tier.id, form); toast.success(t('common.save'))
       }
       setModal(null); load()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur')
+      toast.error(err.response?.data?.message || 'Error')
     } finally { setSaving(false) }
   }
 
   const del = async () => {
     setSaving(true)
     try {
-      await tiersAPI.delete(deleting.id); toast.success('Tiers supprimé.')
+      await tiersAPI.delete(deleting.id); toast.success(t('common.delete'))
       setDeleting(null); load()
-    } catch { toast.error('Impossible de supprimer.') }
+    } catch { toast.error('Error') }
     finally { setSaving(false) }
   }
 
   return (
     <div className="fade-in flex flex-col gap-6">
       <PageHeader
-        title="Gestion des tiers"
+        title={t('tiers.title')}
         action={
           <button className="btn-primary" onClick={() => setModal('create')}>
-            <Plus size={16} /> Ajouter des tiers
+            <Plus size={16} /> {t('tiers.add_tier')}
           </button>
         }
       />
@@ -87,71 +90,73 @@ export default function TiersPage() {
       {/* Search */}
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name..." className="input pl-9" />
+            placeholder={t('tiers.placeholder_search')} className="input pl-9 dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
         </div>
       </div>
 
       {/* Table */}
-      <div className="card p-0 overflow-hidden">
+      <div className="card p-0 overflow-hidden dark:bg-slate-900 dark:border-white/10 transition-colors">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="👥" title="Aucun tiers" description="Ajoutez vos premiers tiers pour commencer le suivi." />
+          <EmptyState icon="👥" title={t('tiers.no_tiers')} description={t('tiers.desc_no_tiers')} />
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 text-xs text-gray-400 uppercase tracking-wide">
-                <th className="py-3 px-6 text-left font-medium">Name</th>
-                <th className="py-3 px-4 text-left font-medium">Type</th>
-                <th className="py-3 px-4 text-left font-medium">Contact</th>
-                <th className="py-3 px-6 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(t => (
-                <tr key={t.id} className="border-b border-gray-50 last:border-0 hover:bg-primary-50/40 transition-colors">
-                  <td className="py-3 px-6">
-                    <div className="flex items-center gap-3">
-                      <Avatar name={t.name} size="sm" />
-                      <span className="font-medium text-gray-800">{t.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="badge bg-primary-100 text-primary-700">
-                      {t.type.charAt(0).toUpperCase() + t.type.slice(1)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-400">{t.contact || '—'}</td>
-                  <td className="py-3 px-6 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setModal({ tier: t })}
-                        className="p-1.5 rounded-lg hover:bg-primary-100 text-gray-400 hover:text-sakan-blue transition-colors">
-                        <Pencil size={14} />
-                      </button>
-                      <button onClick={() => setDeleting(t)}
-                        className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 dark:border-slate-800 text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide bg-gray-50/50 dark:bg-slate-800/20">
+                  <th className="py-3 px-6 text-left font-medium">{t('common.name')}</th>
+                  <th className="py-3 px-4 text-left font-medium">{t('common.type')}</th>
+                  <th className="py-3 px-4 text-left font-medium">{t('common.contact')}</th>
+                  <th className="py-3 px-6 text-right font-medium">{t('common.actions')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map(t_item => (
+                  <tr key={t_item.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                    <td className="py-3 px-6">
+                      <div className="flex items-center gap-3">
+                        <Avatar name={t_item.name} size="sm" />
+                        <span className="font-medium text-gray-800 dark:text-slate-200">{t_item.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                        {t_item.type.charAt(0).toUpperCase() + t_item.type.slice(1)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-400 dark:text-slate-500">{t_item.contact || '—'}</td>
+                    <td className="py-3 px-6 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => setModal({ tier: t_item })}
+                          className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleting(t_item)}
+                          className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <Modal open={!!modal} onClose={() => setModal(null)}
-        title={modal === 'create' ? 'Ajouter un tiers' : 'Modifier le tiers'}>
+        title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
         <TierForm initial={modal?.tier} onSave={save} loading={saving} />
       </Modal>
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)}
         onConfirm={del} loading={saving}
-        title="Supprimer le tiers"
-        message={`Supprimer "${deleting?.name}" ? Ses transactions seront aussi supprimées.`} />
+        title={t('common.delete')}
+        message={`${t('common.delete')} "${deleting?.name}" ? ${t('tiers.confirm_delete')}`} />
     </div>
   )
 }
