@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
@@ -32,5 +33,25 @@ class Charge extends Model
     {
         return $query->where('mois', now()->month)
                      ->where('annee', now()->year);
+    }
+
+    public function verifierStatut(): void
+    {
+        if ($this->statut === 'payee') {
+            return;
+        }
+
+        if ($this->date_paiement && $this->statut !== 'payee') {
+            $this->statut = 'payee';
+            $this->saveQuietly();
+            return;
+        }
+
+        $echeance = Carbon::create($this->annee, $this->mois, $this->jour_echeance)->startOfDay();
+
+        if (now()->startOfDay()->gt($echeance) && $this->statut !== 'en_retard') {
+            $this->statut = 'en_retard';
+            $this->saveQuietly();
+        }
     }
 }

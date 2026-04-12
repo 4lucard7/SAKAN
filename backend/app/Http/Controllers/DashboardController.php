@@ -77,26 +77,7 @@ class DashboardController extends Controller
         // ── Notifications non lues ───────────────────────────────────
         $unreadNotifs = $user->notifications()->where('is_read', false)->count();
 
-        // ── Graphiques (données pour charts) ─────────────────────────
-        // Répartition charges par catégorie (mois courant)
-        $chargesParCategorie = $chargesMois->groupBy('categorie')->map(fn($g) => [
-            'categorie' => $g->first()->categorie ?? 'Non catégorisé',
-            'total'     => $g->sum('montant'),
-        ])->values();
-
-        // Évolution dettes sur 6 derniers mois
-        $evolutionDettes = collect(range(5, 0))->map(function ($monthsAgo) use ($user) {
-            $date = Carbon::now()->subMonths($monthsAgo);
-            $total = $user->debts()
-                ->where('type', 'outflow')
-                ->whereYear('created_at', $date->year)
-                ->whereMonth('created_at', $date->month)
-                ->sum('total_prete');
-            return [
-                'mois'  => $date->format('M Y'),
-                'total' => (float) $total,
-            ];
-        });
+        
 
         return response()->json([
             'finances' => [
@@ -121,10 +102,7 @@ class DashboardController extends Controller
                 'nb_alertes'  => count($voitureAlertes),
             ],
             'notifications_non_lues' => $unreadNotifs,
-            'charts' => [
-                'charges_par_categorie' => $chargesParCategorie,
-                'evolution_dettes'      => $evolutionDettes,
-            ],
+    
         ]);
     }
 }
