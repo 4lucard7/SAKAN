@@ -2,7 +2,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { Sun, Moon, Bell, LogOut, ChevronRight } from 'lucide-react';
+import { Sun, Moon, Bell, LogOut, LayoutDashboard, Users, Wallet, Car, Wrench, FileText} from 'lucide-react';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -44,13 +44,13 @@ export default function Layout({ children }) {
 
   // Sidebar navigation items based on your design
   const navItems = [
-    { path: '/dashboard', label: t('common.dashboard'), icon: '📊' },
-    { path: '/tiers', label: t('common.tiers'), icon: '👥' },
-    { path: '/debts', label: t('common.debts'), icon: '💰' },
-    { path: '/voiture', label: t('common.voiture'), icon: '🚗' },
-    { path: '/voiture_maintenance', label: t('common.maintenance'), icon: '🛠️' },
-    { path: '/charges', label: t('common.charges'), icon: '🧾' },
-    { path: '/notifications', label: t('common.notifications'), icon: '🔔' },
+    { path: '/dashboard', label: t('common.dashboard'), icon: LayoutDashboard },
+    { path: '/tiers', label: t('common.tiers'), icon: Users },
+    { path: '/debts', label: t('common.debts'), icon: Wallet },
+    { path: '/voiture', label: t('common.voiture'), icon: Car },
+    { path: '/voiture_maintenance', label: t('common.maintenance'), icon: Wrench },
+    { path: '/charges', label: t('common.charges'), icon: FileText },
+    { path: '/notifications', label: t('common.notifications'), icon: Bell },
   ];
 
   const languages = [
@@ -63,26 +63,41 @@ export default function Layout({ children }) {
     <div className={`flex h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300 ${i18n.language === 'ar' ? 'font-arabic' : ''}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
       {/* 📱 Sidebar */}
       <aside className={`w-64 bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 flex flex-col transition-colors duration-300 ${i18n.language === 'ar' ? 'border-l' : 'border-r'}`}>
-        <div className="p-6">
-          <div className="bg-sakan text-white px-4 py-2 rounded-lg inline-block mb-2 shadow-lg shadow-sakan/20">
-            <span className="font-bold text-2xl tracking-wide">SAKAN</span>
+        {/* Logo */}
+
+          <div className="flex items-center justify-center gap-2 mb-6 mt-5">
+          <div className="w-9 h-9 rounded-full bg-[#2196F3] flex items-center justify-center shadow">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M10 2L18 10L10 18L2 10L10 2Z"
+                fill="white"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinejoin="round"
+              />
+              <path d="M10 6L14 10L10 14L6 10L10 6Z" fill="#2196F3" strokeLinejoin="round" />
+            </svg>
           </div>
+          <span className="text-[#2196F3] font-extrabold text-xl tracking-widest uppercase">Sakan</span>
         </div>
+        
 
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
+            const Icon = item.icon;
+
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center px-4 py-3 rounded-xl transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                   isActive
-                    ? 'bg-sky-50 dark:bg-sakan/10 text-sakan font-bold shadow-sm'
+                    ? 'bg-[#2196F3]  text-dark font-bold shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white font-medium'
                 }`}
               >
-                <span className="mr-3 scale-110">{item.icon}</span>
+                <Icon size={18} />
                 {item.label}
               </Link>
             );
