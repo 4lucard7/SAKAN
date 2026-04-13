@@ -55,6 +55,7 @@ class MaintenanceController extends Controller
             'duration'            => 'nullable|integer|min:1|max:120',
             'cost'                => 'nullable|numeric|min:0',
             'notes'               => 'nullable|string',
+            'is_required'         => 'sometimes|boolean',
         ]);
 
         $validated['car_id'] = $voiture->id;
@@ -103,6 +104,7 @@ class MaintenanceController extends Controller
             'duration'            => 'nullable|integer|min:1|max:120',
             'cost'                => 'nullable|numeric|min:0',
             'notes'               => 'nullable|string',
+            'is_required'         => 'sometimes|boolean',
         ]);
 
         $maintenance->update($validated);

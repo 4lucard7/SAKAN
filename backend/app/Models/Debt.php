@@ -11,7 +11,7 @@ class Debt extends Model
 {
     protected $fillable = [
         'user_id', 'tier_id', 'total_prete', 'total_rembourse',
-        'reste', 'type', 'statut', 'due_date', 'notes'
+        'reste', 'type', 'statut', 'due_date', 'notes', 'is_required'
     ];
 
     protected $casts = [
@@ -19,6 +19,7 @@ class Debt extends Model
         'total_prete'      => 'float',
         'total_rembourse'  => 'float',
         'reste'            => 'float',
+        'is_required'      => 'boolean',
     ];
 
     public function user(): BelongsTo

@@ -60,6 +60,7 @@ class ChargeController extends Controller
             'categorie'     => 'nullable|string|max:50',
             'montant'       => 'required|numeric|min:0.01',
             'jour_echeance' => 'required|integer|min:1|max:28',
+            'is_required'   => 'sometimes|boolean',
         ]);
 
         $now = Carbon::now();
@@ -99,6 +100,7 @@ class ChargeController extends Controller
             'montant'       => 'sometimes|numeric|min:0.01',
             'jour_echeance' => 'sometimes|integer|min:1|max:28',
             'actif'         => 'sometimes|boolean',
+            'is_required'   => 'sometimes|boolean',
         ]);
 
         $charge->update($validated);

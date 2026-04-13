@@ -14,12 +14,13 @@ class Charge extends Model
     protected $fillable = [
         'user_id', 'libelle', 'categorie', 'montant',
         'jour_echeance', 'mois', 'annee', 'statut',
-        'date_paiement', 'actif'
+        'date_paiement', 'actif', 'is_required'
     ];
 
     protected $casts = [
         'date_paiement' => 'date',
         'actif'         => 'boolean',
+        'is_required'   => 'boolean',
         'montant'       => 'decimal:2',
     ];
 

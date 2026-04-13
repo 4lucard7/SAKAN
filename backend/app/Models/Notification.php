@@ -13,12 +13,13 @@ class Notification extends Model
 
     protected $fillable = [
         'user_id', 'type', 'message',
-        'is_read', 'reference_type', 'reference_id', 'created_at'
+        'is_read', 'is_required', 'reference_type', 'reference_id', 'created_at'
     ];
 
     protected $casts = [
-        'is_read'    => 'boolean',
-        'created_at' => 'datetime',
+        'is_read'     => 'boolean',
+        'is_required' => 'boolean',
+        'created_at'  => 'datetime',
     ];
 
     public function user(): BelongsTo

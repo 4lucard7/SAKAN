@@ -32,6 +32,9 @@ function NotifCard({ notif, onRead, onDelete }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className={`badge text-[10px] ${cfg.color}`}>{notif.type}</span>
+          {notif.is_required && (
+            <span className="badge bg-red-100 text-red-600 text-[10px]">Important</span>
+          )}
           {!notif.is_read && <span className="w-2 h-2 rounded-full bg-sakan-blue flex-shrink-0" />}
           <span className="text-xs text-gray-400 ml-auto">{dateStr}</span>
         </div>

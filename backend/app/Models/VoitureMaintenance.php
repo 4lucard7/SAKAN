@@ -14,10 +14,13 @@ class VoitureMaintenance extends Model
     protected $table    = 'voiture_maintenance';
     protected $fillable = [
         'car_id', 'part_name', 'kilometrage_actuel',
-        'limit_km', 'last_change_date', 'duration', 'cout', 'notes'
+        'limit_km', 'last_change_date', 'duration', 'cout', 'notes', 'is_required'
     ];
 
-    protected $casts = ['last_change_date' => 'datetime'];
+    protected $casts = [
+        'last_change_date' => 'datetime',
+        'is_required'      => 'boolean',
+    ];
 
     public function voiture(): BelongsTo
     {

@@ -59,6 +59,7 @@ class DebtController extends Controller
             'type'        => 'required|in:outflow,inflow',
             'due_date'    => 'nullable|date',
             'notes'       => 'nullable|string',
+            'is_required' => 'sometimes|boolean',
         ]);
 
         // S'assurer que le tiers appartient à l'utilisateur
@@ -97,6 +98,7 @@ class DebtController extends Controller
             'type'        => 'sometimes|in:outflow,inflow',
             'due_date'    => 'nullable|date',
             'notes'       => 'nullable|string',
+            'is_required' => 'sometimes|boolean',
         ]);
 
         $debt->update($validated);

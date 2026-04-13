@@ -48,6 +48,7 @@ class GenerateNotifications extends Command
                     'type'           => 'finances',
                     'message'        => "Rappel : votre {$label} {$dette->tier->name} de {$dette->reste} MAD arrive à échéance dans 7 jours ({$dette->due_date->format('d/m/Y')}).",
                     'is_read'        => false,
+                    'is_required'    => $dette->is_required ?? false,
                     'reference_type' => 'debt',
                     'reference_id'   => $dette->id,
                 ]);
@@ -79,6 +80,7 @@ class GenerateNotifications extends Command
                     'type'           => 'charges',
                     'message'        => "La charge \"{$charge->libelle}\" ({$charge->montant} MAD) est en retard depuis le {$echeance->format('d/m/Y')}.",
                     'is_read'        => false,
+                    'is_required'    => $charge->is_required ?? false,
                     'reference_type' => 'charge',
                     'reference_id'   => $charge->id,
                 ]);
@@ -114,6 +116,7 @@ class GenerateNotifications extends Command
                         'type'           => 'responsabilite',
                         'message'        => "Votre {$label} expire dans {$joursRestants} jours ({$expiryDate->format('d/m/Y')}). Pensez à le renouveler.",
                         'is_read'        => false,
+                        'is_required'    => false,
                         'reference_type' => 'voiture',
                         'reference_id'   => $voiture->id,
                     ]);
@@ -136,6 +139,7 @@ class GenerateNotifications extends Command
                                     'type'           => 'maintenance',
                                     'message'        => "Entretien \"{$m->part_name}\" prévu dans 14 jours ({$prochaineDate->format('d/m/Y')}). Pensez à planifier l'intervention.",
                                     'is_read'        => false,
+                                    'is_required'    => $m->is_required ?? false,
                                     'reference_type' => 'maintenance',
                                     'reference_id'   => $m->id,
                                 ]);
@@ -156,6 +160,7 @@ class GenerateNotifications extends Command
                                     'type'           => 'maintenance',
                                     'message'        => "Entretien \"{$m->part_name}\" dans {$kmRestants} km (seuil : {$prochaineKm} km). Votre kilométrage actuel : {$voiture->current_km} km.",
                                     'is_read'        => false,
+                                    'is_required'    => $m->is_required ?? false,
                                     'reference_type' => 'maintenance',
                                     'reference_id'   => $m->id,
                                 ]);
