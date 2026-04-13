@@ -25,6 +25,7 @@ function ChargeForm({ initial = {}, onSave, loading }) {
   const [form, setForm] = useState(() => {
     const base = {
       libelle: '', categorie: '', montant: '', jour_echeance: '', statut: 'en_attente', jour_echeance_date: '',
+      priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal'),
       ...initial
     }
     return { ...base, jour_echeance_date: formatDateForInput(base.jour_echeance, base.mois, base.annee) }
@@ -71,6 +72,13 @@ function ChargeForm({ initial = {}, onSave, loading }) {
           <option value="en_attente">{t('status.en_attente')}</option>
           <option value="payee">{t('status.payee')}</option>
           <option value="en_retard">{t('status.en_retard')}</option>
+        </select>
+      </Field>
+      <Field label="Priorité">
+        <select name="priority" value={form.priority} onChange={h}
+          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+          <option value="normal">Normal</option>
+          <option value="important">Important</option>
         </select>
       </Field>
       <div className="flex justify-end pt-2">
@@ -125,6 +133,7 @@ function MonthSection({ mois, annee, charges, onEdit, onDelete }) {
                   <th className="py-2 px-6 text-left font-medium">{t('charges.category')}</th>
                   <th className="py-2 px-6 text-left font-medium">{t('common.amount')}</th>
                   <th className="py-2 px-6 text-left font-medium">{t('charges.due_day')}</th>
+                  <th className="py-2 px-6 text-left font-medium">Priorité</th>
                   <th className="py-2 px-6 text-left font-medium">{t('common.status')}</th>
                   <th className="py-2 px-6 text-left font-medium">{t('common.actions')}</th>
                 </tr>
@@ -132,7 +141,14 @@ function MonthSection({ mois, annee, charges, onEdit, onDelete }) {
               <tbody>
                 {charges.map(c => (
                   <tr key={c.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/30 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-6 font-medium text-gray-800 dark:text-slate-200">{c.libelle}</td>
+                    <td className="py-3 px-6 font-medium text-gray-800 dark:text-slate-200">
+                      <div className="flex items-center gap-2">
+                        <span>{c.libelle}</span>
+                        {c.is_required && (
+                          <span className="badge bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400">Important</span>
+                        )}
+                      </div>
+                    </td>
                     <td className="py-3 px-6">
                       {c.categorie ? (
                         <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 flex items-center gap-1 w-fit">
@@ -143,6 +159,11 @@ function MonthSection({ mois, annee, charges, onEdit, onDelete }) {
                     <td className="py-3 px-6 font-semibold dark:text-white">{Number(c.montant).toLocaleString()} MAD</td>
                     <td className="py-3 px-6 text-gray-500 dark:text-slate-400">
                       {new Date(c.annee, c.mois - 1, c.jour_echeance).toLocaleDateString(i18n.language)}
+                    </td>
+                    <td className="py-3 px-6">
+                      <StatutBadge color={(c.priority === 'important' || c.is_required) ? 'red' : 'gray'}>
+                        {((c.priority || (c.is_required ? 'important' : 'normal')) === 'important') ? 'Important' : 'Normal'}
+                      </StatutBadge>
                     </td>
                     <td className="py-3 px-6">
                       <StatutBadge color={statusColor(c.statut)}>

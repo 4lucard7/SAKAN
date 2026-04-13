@@ -8,10 +8,15 @@ import { useTranslation } from 'react-i18next'
 function DebtForm({ initial = {}, tiers, onSave, loading }) {
   const { t } = useTranslation()
   const [form, setForm] = useState({
-    tier_id: '', type: 'outflow', total_prete: '', due_date: '', notes: '', ...initial,
+    tier_id: '', type: 'outflow', total_prete: '', due_date: '', notes: '',
+    priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal'),
+    ...initial,
     tier_id: initial?.tier_id || initial?.tier?.id || '',
   })
-  const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  const h = e => {
+    const { name, value } = e.target
+    setForm(f => ({ ...f, [name]: value }))
+  }
   return (
     <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
       <Field label={t('common.tiers')} required>
@@ -34,6 +39,12 @@ function DebtForm({ initial = {}, tiers, onSave, loading }) {
       </div>
       <Field label={t('debts.due_date')}>
         <input name="due_date" type="date" value={form.due_date || ''} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+      </Field>
+      <Field label="Priorité">
+        <select name="priority" value={form.priority} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+          <option value="normal">Normal</option>
+          <option value="important">Important</option>
+        </select>
       </Field>
       <Field label={t('common.notes')}>
         <textarea name="notes" value={form.notes || ''} onChange={h}
@@ -189,6 +200,7 @@ export default function DebtsPage() {
                   <th className="py-3 px-6 text-left font-medium">{t('debts.total_prete')}</th>
                   <th className="py-3 px-6 text-left font-medium">{t('debts.total_rembourse')}</th>
                   <th className="py-3 px-6 text-left font-medium">{t('debts.reste')}</th>
+                  <th className="py-3 px-6 text-left font-medium">Priorité</th>
                   <th className="py-3 px-6 text-left font-medium">{t('debts.due_date')}</th>
                   <th className="py-3 px-6 text-left font-medium">{t('common.actions')}</th>
                 </tr>
@@ -210,6 +222,11 @@ export default function DebtsPage() {
                     <td className="py-3 px-6 font-semibold dark:text-white">{Number(d.total_prete).toLocaleString()} MAD</td>
                     <td className="py-3 px-6 text-green-600 dark:text-green-400 font-medium">{Number(d.total_rembourse).toLocaleString()} MAD</td>
                     <td className="py-3 px-6 font-bold text-sakan-blue dark:text-sakan">{Number(d.reste).toLocaleString()} MAD</td>
+                    <td className="py-3 px-6">
+                      <StatutBadge color={(d.priority === 'important' || d.is_required) ? 'red' : 'gray'}>
+                        {(d.priority || (d.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
+                      </StatutBadge>
+                    </td>
                     <td className="py-3 px-6 text-gray-400 dark:text-slate-500 text-xs">
                       {d.due_date ? new Date(d.due_date).toLocaleDateString(i18n.language) : '—'}
                     </td>

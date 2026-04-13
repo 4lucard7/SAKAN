@@ -10,9 +10,13 @@ function MaintenanceForm({ initial = {}, onSave, loading }) {
   const [form, setForm] = useState({
     part_name: '', kilometrage_actuel: '', limit_km: '',
     last_change_date: '', duration: '', cost: '', notes: '',
+    priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal'),
     ...initial
   })
-  const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  const h = e => {
+    const { name, value } = e.target
+    setForm(f => ({ ...f, [name]: value }))
+  }
   return (
     <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
       <Field label={t('maintenance.part_name')} required>
@@ -43,6 +47,12 @@ function MaintenanceForm({ initial = {}, onSave, loading }) {
         <Field label={`${t('maintenance.cost')} (MAD)`}>
           <input name="cost" type="number" min="0" step="0.01"
             value={form.cost} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
+        </Field>
+        <Field label="Priorité">
+          <select name="priority" value={form.priority} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+            <option value="normal">Normal</option>
+            <option value="important">Important</option>
+          </select>
         </Field>
         <Field label={t('common.notes')}>
           <input name="notes" value={form.notes} onChange={h}
@@ -177,6 +187,7 @@ export default function MaintenancePage() {
                 <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
                   <th className="py-3 px-6 text-left font-medium">{t('maintenance.part_name')}</th>
                   <th className="py-3 px-4 text-left font-medium">{t('vehicle.current_km')}</th>
+                  <th className="py-3 px-4 text-left font-medium">Priorité</th>
                   <th className="py-3 px-4 text-left font-medium">{t('maintenance.next_km').split(' ')[2]}</th>
                   <th className="py-3 px-4 text-left font-medium">{t('maintenance.last_done').split(' ')[0]}</th>
                   <th className="py-3 px-4 text-left font-medium">{t('maintenance.duration_months').split(' ')[0]}</th>
@@ -189,6 +200,11 @@ export default function MaintenancePage() {
                   <tr key={m.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 px-6 font-medium text-gray-800 dark:text-slate-200">{m.part_name}</td>
                     <td className="py-3 px-4 dark:text-slate-400">{formatKm(m.kilometrage_actuel)} km</td>
+                    <td className="py-3 px-4">
+                      <StatutBadge color={(m.priority === 'important' || m.is_required) ? 'red' : 'gray'}>
+                        {(m.priority || (m.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
+                      </StatutBadge>
+                    </td>
                     <td className={`py-3 px-4 ${m.statut_alerte === 'alerte_km' || m.statut_alerte === 'depasse' ? 'text-orange-500 font-semibold dark:text-orange-400' : 'text-gray-400 dark:text-slate-600'}`}>
                       {m.limit_km ? `${formatKm(m.limit_km)} km` : '—'}
                     </td>
