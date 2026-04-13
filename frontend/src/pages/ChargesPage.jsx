@@ -9,12 +9,40 @@ const now = new Date()
 
 function ChargeForm({ initial = {}, onSave, loading }) {
   const { t } = useTranslation()
-  const [form, setForm] = useState({
-    libelle: '', categorie: '', montant: '', jour_echeance: '', ...initial
+  const formatDateForInput = (value, month = null, year = null) => {
+    if (!value) return ''
+    const day = Number(value)
+    if (Number.isInteger(day) && day >= 1 && day <= 28) {
+      const date = new Date(
+        year ?? new Date().getFullYear(),
+        month ? month - 1 : new Date().getMonth(),
+        day
+      )
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
+    return ''
+  }
+  const [form, setForm] = useState(() => {
+    const base = {
+      libelle: '', categorie: '', montant: '', jour_echeance: '', statut: 'en_attente', jour_echeance_date: '',
+      ...initial
+    }
+    return { ...base, jour_echeance_date: formatDateForInput(base.jour_echeance, base.mois, base.annee) }
   })
-  const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  const h = e => {
+    const { name, value } = e.target
+    if (name === 'jour_echeance_date') {
+      setForm(f => ({ ...f, jour_echeance_date: value, jour_echeance: value ? new Date(value).getDate() : '' }))
+    } else {
+      setForm(f => ({ ...f, [name]: value }))
+    }
+  }
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onSave({ ...form, jour_echeance: Number(form.jour_echeance) })
+  }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <Field label={t('charges.label')} required>
         <input name="libelle" required value={form.libelle} onChange={h}
           className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('charges.placeholder_libelle')} />
@@ -34,8 +62,16 @@ function ChargeForm({ initial = {}, onSave, loading }) {
         </Field>
       </div>
       <Field label={t('charges.due_day')} required>
-        <input name="jour_echeance" type="number" min="1" max="28" required
-          value={form.jour_echeance} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="1" />
+        <input name="jour_echeance_date" type="date" required
+          value={form.jour_echeance_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+      </Field>
+      <Field label={t('common.status')}>
+        <select name="statut" value={form.statut} onChange={h}
+          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+          <option value="en_attente">{t('status.en_attente')}</option>
+          <option value="payee">{t('status.payee')}</option>
+          <option value="en_retard">{t('status.en_retard')}</option>
+        </select>
       </Field>
       <div className="flex justify-end pt-2">
         <button type="submit" disabled={loading} className="btn-primary">
@@ -46,10 +82,11 @@ function ChargeForm({ initial = {}, onSave, loading }) {
   )
 }
 
-function MonthSection({ mois, annee, charges, onStatut, onEdit, onDelete }) {
+function MonthSection({ mois, annee, charges, onEdit, onDelete }) {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(true)
   const total = charges.reduce((s, c) => s + Number(c.montant), 0)
+  const statusColor = (statut) => statut === 'payee' ? 'green' : statut === 'en_retard' ? 'red' : 'yellow'
   
   const monthName = new Date(annee, mois - 1).toLocaleString(i18n.language, { month: 'long', year: 'numeric' })
 
@@ -104,18 +141,13 @@ function MonthSection({ mois, annee, charges, onStatut, onEdit, onDelete }) {
                       ) : <span className="text-gray-300 dark:text-slate-600">—</span>}
                     </td>
                     <td className="py-3 px-6 font-semibold dark:text-white">{Number(c.montant).toLocaleString()} MAD</td>
-                    <td className="py-3 px-6 text-gray-500 dark:text-slate-400">{t('common.date')} {c.jour_echeance}</td>
+                    <td className="py-3 px-6 text-gray-500 dark:text-slate-400">
+                      {new Date(c.annee, c.mois - 1, c.jour_echeance).toLocaleDateString(i18n.language)}
+                    </td>
                     <td className="py-3 px-6">
-                      <select
-                        value={c.statut}
-                        onChange={e => onStatut(c.id, e.target.value)}
-                        className="text-xs font-semibold rounded-full px-2 py-1 border-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sakan-blue
-                          bg-transparent dark:text-slate-200"
-                      >
-                        <option value="en_attente" className="dark:bg-slate-900">{t('status.en_attente')}</option>
-                        <option value="payee" className="dark:bg-slate-900">{t('status.payee')}</option>
-                        <option value="en_retard" className="dark:bg-slate-900">{t('status.en_retard')}</option>
-                      </select>
+                      <StatutBadge color={statusColor(c.statut)}>
+                        {c.statut === 'payee' ? t('status.payee') : c.statut === 'en_retard' ? t('status.en_retard') : t('status.en_attente')}
+                      </StatutBadge>
                     </td>
                     <td className="py-3 px-6">
                       <div className="flex items-center gap-1">
@@ -196,7 +228,12 @@ export default function ChargesPage() {
       if (modal === 'create') {
         await chargesAPI.create(form); toast.success(t('common.save'))
       } else {
-        await chargesAPI.update(modal.charge.id, form); toast.success(t('common.save'))
+        const { statut, ...payload } = form
+        await chargesAPI.update(modal.charge.id, payload)
+        if (statut && statut !== modal.charge.statut) {
+          await chargesAPI.updateStatut(modal.charge.id, statut)
+        }
+        toast.success(t('common.save'))
       }
       setModal(null); load()
     } catch (err) {
@@ -265,7 +302,6 @@ export default function ChargesPage() {
             <MonthSection
               key={key}
               mois={mois} annee={annee} charges={ch}
-              onStatut={updateStatut}
               onEdit={c => setModal({ charge: c })}
               onDelete={c => setDeleting(c)}
             />
