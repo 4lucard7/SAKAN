@@ -71,6 +71,11 @@ function DocBadge({ label, expiry, statut }) {
   )
 }
 
+const formatKm = (value) => {
+  const km = Number(value)
+  return Number.isFinite(km) ? km.toLocaleString() : '0'
+}
+
 export default function VoiturePage() {
   const { t } = useTranslation()
   const [voiture, setVoiture] = useState(null)
@@ -143,7 +148,7 @@ export default function VoiturePage() {
               <div>
                 <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide font-medium">{t('vehicle.current_km')}</p>
                 <p className="font-display font-bold text-xl text-gray-800 dark:text-white transition-colors">
-                  {Number(voiture.current_km).toLocaleString()} km
+                    {formatKm(voiture.current_km)} km
                 </p>
               </div>
             </div>

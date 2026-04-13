@@ -70,6 +70,11 @@ function AlerteBadge({ statut }) {
   return <span className={`badge ${color} flex items-center gap-1`}><AlertTriangle size={10} />{label}</span>
 }
 
+const formatKm = (value) => {
+  const km = Number(value)
+  return Number.isFinite(km) ? km.toLocaleString() : '0'
+}
+
 export default function MaintenancePage() {
   const { t, i18n } = useTranslation()
   const [maintenances, setMaintenances] = useState([])
@@ -141,7 +146,7 @@ export default function MaintenancePage() {
         </div>
         <div>
           <p className="font-display font-semibold text-gray-800 dark:text-white transition-colors">{voiture.car_name}</p>
-          <p className="text-xs text-gray-400 dark:text-slate-500">{Number(voiture.current_km).toLocaleString()} km actuels</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500">{formatKm(voiture.current_km)} km actuels</p>
         </div>
         <div className="ml-auto flex gap-6 text-center">
           <div>
@@ -183,9 +188,9 @@ export default function MaintenancePage() {
                 {maintenances.map(m => (
                   <tr key={m.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3 px-6 font-medium text-gray-800 dark:text-slate-200">{m.part_name}</td>
-                    <td className="py-3 px-4 dark:text-slate-400">{Number(m.kilometrage_actuel).toLocaleString()} km</td>
+                    <td className="py-3 px-4 dark:text-slate-400">{formatKm(m.kilometrage_actuel)} km</td>
                     <td className={`py-3 px-4 ${m.statut_alerte === 'alerte_km' || m.statut_alerte === 'depasse' ? 'text-orange-500 font-semibold dark:text-orange-400' : 'text-gray-400 dark:text-slate-600'}`}>
-                      {m.limit_km ? `${Number(m.limit_km).toLocaleString()} km` : '—'}
+                      {m.limit_km ? `${formatKm(m.limit_km)} km` : '—'}
                     </td>
                     <td className="py-3 px-4 dark:text-slate-400">{new Date(m.last_change_date).toLocaleDateString(i18n.language)}</td>
                     <td className="py-3 px-4 text-gray-500 dark:text-slate-500">
