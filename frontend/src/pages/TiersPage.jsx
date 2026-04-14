@@ -5,21 +5,32 @@ import { Plus, Pencil, Trash2, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-const TYPES = ['ami', 'famille', 'collègue', 'autre']
+const TYPES = ['ami', 'famille', 'collègue','Banques','Ecole', 'autre']
 
 function TierForm({ initial = {}, onSave, loading }) {
   const { t } = useTranslation()
-  const [form, setForm] = useState({ name: '', type: 'ami', contact: '', ...initial })
+  const [form, setForm] = useState({ name: '', type: '', contact: '', ...initial })
   const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 " > 
       <Field label={t('common.name')} required>
-        <input name="name" required value={form.name} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_name')} />
+        <input name="name" required value={form.name} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_name')}  />
       </Field>
       <Field label={t('common.type')} required>
-        <Select name="type" value={form.type} onChange={h}>
-          {TYPES.map(tier_type => <option key={tier_type} value={tier_type} className="dark:bg-slate-900">{tier_type.charAt(0).toUpperCase() + tier_type.slice(1)}</option>)}
-        </Select>
+        <input
+          name="type"
+          list="tier-types"
+          value={form.type}
+          onChange={h}
+          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+          placeholder="Sélectionnez ou saisissez un type"
+          required
+        />
+        <datalist id="tier-types">
+          {TYPES.map(tier_type => (
+            <option key={tier_type} value={tier_type} />
+          ))}
+        </datalist>
       </Field>
       <Field label={t('common.contact')}>
         <input name="contact" value={form.contact} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_contact')} />
@@ -84,6 +95,7 @@ export default function TiersPage() {
           <button className="btn-primary" onClick={() => setModal('create')}>
             <Plus size={16} /> {t('tiers.add_tier')}
           </button>
+          
         }
       />
 
@@ -147,11 +159,12 @@ export default function TiersPage() {
           </div>
         )}
       </div>
-
+      <div className="mt-5">
       <Modal open={!!modal} onClose={() => setModal(null)}
-        title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
-        <TierForm initial={modal?.tier} onSave={save} loading={saving} />
+        title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>      
+            <TierForm initial={modal?.tier} onSave={save} loading={saving} />   
       </Modal>
+      </div>
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)}
         onConfirm={del} loading={saving}
