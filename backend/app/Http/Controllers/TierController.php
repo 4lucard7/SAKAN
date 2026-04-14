@@ -30,9 +30,9 @@ class TierController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $validated = $request->validate([ 
             'name'    => 'required|string|max:100',
-            'type'    => 'required|in:ami,famille,collègue,autre',
+            'type'    => 'required|string|max:100',
             'contact' => 'nullable|string|max:150',
         ]);
 
