@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\GenerateMonthlyCharges::class,
         Commands\GenerateNotifications::class,
+        Commands\TestMaintenanceNotifications::class,
     ];
 
     /**

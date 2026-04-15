@@ -42,4 +42,30 @@ class VoitureMaintenance extends Model
             ? $this->kilometrage_actuel + $this->limit_km
             : null;
     }
+
+    public function getStatutAlerteAttribute(): string
+    {
+        $now = Carbon::now();
+        $nextDate = $this->prochaine_date;
+        $nextKm = $this->prochaine_km;
+        $currentKm = $this->kilometrage_actuel;
+
+        if ($nextKm && $currentKm >= $nextKm) {
+            return 'depasse';
+        }
+
+        if ($nextDate && $now->gt($nextDate)) {
+            return 'depasse';
+        }
+
+        if ($nextKm && $currentKm >= $nextKm - 500) {
+            return 'alerte_km';
+        }
+
+        if ($nextDate && $nextDate->gte($now) && $now->diffInDays($nextDate, false) <= 14) {
+            return 'alerte_date';
+        }
+
+        return 'ok';
+    }
 }

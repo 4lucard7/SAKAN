@@ -18,9 +18,36 @@ function StatCard({ label, value, color, icon: Icon, sub }) {
   )
 }
 
+const DEFAULT_DASHBOARD = {
+  finances: {
+    total_dettes: 0,
+    total_creances: 0,
+    solde_net: 0,
+    en_retard: 0,
+    echeances_j7: 0,
+  },
+  charges: {
+    total_du: 0,
+    total_paye: 0,
+    restant: 0,
+    en_retard: 0,
+    taux_paiement: 0,
+  },
+  voiture: {
+    enregistree: false,
+    alertes: [],
+    nb_alertes: 0,
+  },
+  charts: {
+    charges_par_categorie: [],
+    evolution_dettes: [],
+  },
+  notifications_non_lues: 0,
+}
+
 export default function Dashboard() {
   const { t, i18n } = useTranslation()
-  const [data,       setData]       = useState(null)
+  const [data,       setData]       = useState(DEFAULT_DASHBOARD)
   const [recentTiers,setRecentTiers]= useState([])
   const [loading,    setLoading]    = useState(true)
   const navigate = useNavigate()
@@ -30,6 +57,9 @@ export default function Dashboard() {
       .then(([d, t]) => {
         setData(d.data)
         setRecentTiers(t.data.slice(0, 3))
+      })
+      .catch(() => {
+        setData(DEFAULT_DASHBOARD)
       })
       .finally(() => setLoading(false))
   }, [])

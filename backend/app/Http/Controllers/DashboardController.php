@@ -49,7 +49,8 @@ class DashboardController extends Controller
 
         if ($voiture) {
             // Alertes responsabilités
-            foreach ($voiture->responsabilites as $doc => $info) {
+            $responsabilites = $voiture->responsabilites ?? [];
+            foreach ($responsabilites as $doc => $info) {
                 if (in_array($info['statut'], ['alerte_j7', 'alerte_j30', 'expire'])) {
                     $voitureAlertes[] = [
                         'type'           => 'responsabilite',

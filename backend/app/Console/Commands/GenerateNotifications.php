@@ -133,7 +133,7 @@ class GenerateNotifications extends Command
                         $joursRestants = $today->diffInDays($prochaineDate, false);
 
                         if ($joursRestants === 14) {
-                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_date', $today)) {
+                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_date', $today, true)) {
                                 Notification::create([
                                     'user_id'        => $user->id,
                                     'type'           => 'maintenance',
@@ -154,7 +154,7 @@ class GenerateNotifications extends Command
                         $kmRestants    = $prochaineKm - $voiture->current_km;
 
                         if ($kmRestants > 0 && $kmRestants <= 500) {
-                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_km', $today)) {
+                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_km', $today, false)) {
                                 Notification::create([
                                     'user_id'        => $user->id,
                                     'type'           => 'maintenance',
@@ -186,14 +186,18 @@ class GenerateNotifications extends Command
      * Vérifie si une notif pour cette entité a déjà été créée aujourd'hui.
      * Empêche les doublons si la commande tourne plusieurs fois.
      */
-    private function notifExiste(int $userId, string $type, int $refId, string $refType, Carbon $today): bool
+    private function notifExiste(int $userId, string $type, int $refId, string $refType, Carbon $today, bool $sameDay = true): bool
     {
-        return Notification::where('user_id', $userId)
+        $query = Notification::where('user_id', $userId)
             ->where('type', $type)
             ->where('reference_id', $refId)
-            ->where('reference_type', $refType)
-            ->whereDate('created_at', $today)
-            ->exists();
+            ->where('reference_type', $refType);
+
+        if ($sameDay) {
+            $query->whereDate('created_at', $today);
+        }
+
+        return $query->exists();
     }
 
     /**
