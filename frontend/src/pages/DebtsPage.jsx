@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { debtsAPI, tiersAPI } from '../services/api'
 import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/Ui'
-import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, MoreVertical, Coins } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, MoreVertical, Coins,Wallet } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
@@ -189,7 +189,7 @@ export default function DebtsPage() {
         {loading ? (
           <div className="flex justify-center py-16"><Spinner /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="💳" title={t('common.no_data')} description={t('debts.all_transactions')} />
+          <EmptyState icon={<Wallet size={48} />} title={t('common.no_data')} description={t('debts.all_transactions')} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

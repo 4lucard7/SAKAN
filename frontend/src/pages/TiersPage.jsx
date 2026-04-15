@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { tiersAPI } from '../services/api'
 import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, Field, Select } from '../components/Ui'
-import { Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search,Users} from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-const TYPES = ['ami', 'famille', 'collègue','Banques','Ecole', 'autre']
+const TYPES = ['famille', 'collègue','Banques','Ecole', 'autre']
 
 function TierForm({ initial = {}, onSave, loading }) {
   const { t } = useTranslation()
@@ -113,7 +113,7 @@ export default function TiersPage() {
         {loading ? (
           <div className="flex justify-center py-16"><Spinner /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon="👥" title={t('tiers.no_tiers')} description={t('tiers.desc_no_tiers')} />
+          <EmptyState icon={<Users size={48} />} title={t('tiers.no_tiers')} description={t('tiers.desc_no_tiers')} />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -161,8 +161,8 @@ export default function TiersPage() {
       </div>
       <div className="mt-5">
       <Modal open={!!modal} onClose={() => setModal(null)}
-        title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>      
-            <TierForm initial={modal?.tier} onSave={save} loading={saving} />   
+        title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
+            <TierForm initial={modal?.tier} onSave={save} loading={saving} />
       </Modal>
       </div>
 
