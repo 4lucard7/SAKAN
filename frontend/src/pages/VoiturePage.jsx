@@ -96,12 +96,25 @@ export default function VoiturePage() {
     setSaving(true)
     try {
       if (voiture) {
-        await voitureAPI.update(form); toast.success(t('common.save'))
+        await voitureAPI.update(form)
       } else {
-        await voitureAPI.create(form); toast.success(t('common.save'))
+        await voitureAPI.create(form)
       }
+      toast.success(t('common.save'))
       setModal(false); load()
     } catch (err) {
+      if (err.response?.status === 404 && voiture) {
+        // If the backend reports no voiture, fall back to creating it.
+        try {
+          await voitureAPI.create(form)
+          toast.success(t('common.save'))
+          setModal(false); load()
+          return
+        } catch (createErr) {
+          toast.error(createErr.response?.data?.message || 'Error')
+          return
+        }
+      }
       toast.error(err.response?.data?.message || 'Error')
     } finally { setSaving(false) }
   }
