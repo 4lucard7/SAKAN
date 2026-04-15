@@ -161,8 +161,8 @@ function MonthSection({ mois, annee, charges, onEdit, onDelete }) {
                       {new Date(c.annee, c.mois - 1, c.jour_echeance).toLocaleDateString(i18n.language)}
                     </td>
                     <td className="py-3 px-6">
-                      <StatutBadge color={(c.priority === 'important' || c.is_required) ? 'red' : 'gray'}>
-                        {((c.priority || (c.is_required ? 'important' : 'normal')) === 'important') ? 'Important' : 'Normal'}
+                      <StatutBadge color={c.is_required ? 'red' : 'blue'}>
+                        {c.is_required ? 'Important' : 'Normal'}
                       </StatutBadge>
                     </td>
                     <td className="py-3 px-6">
@@ -246,11 +246,17 @@ export default function ChargesPage() {
   const save = async (form) => {
     setSaving(true)
     try {
+      const payload = {
+        ...form,
+        is_required: form.priority === 'important',
+      }
+      delete payload.priority
+
       if (modal === 'create') {
-        await chargesAPI.create(form); toast.success(t('common.save'))
+        await chargesAPI.create(payload); toast.success(t('common.save'))
       } else {
-        const { statut, ...payload } = form
-        await chargesAPI.update(modal.charge.id, payload)
+        const { statut, ...data } = payload
+        await chargesAPI.update(modal.charge.id, data)
         if (statut && statut !== modal.charge.statut) {
           await chargesAPI.updateStatut(modal.charge.id, statut)
         }
