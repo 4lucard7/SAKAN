@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { chargesAPI } from '../services/api'
 import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/Ui'
-import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronUp, Clock, CheckCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronUp, Clock, CheckCircle,FileText } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
@@ -316,7 +316,7 @@ export default function ChargesPage() {
       {loading ? (
         <div className="flex justify-center py-16"><Spinner size={32} /></div>
       ) : sortedGroups.length === 0 ? (
-        <EmptyState icon="🗂️" title={t('common.no_data')} description={t('charges.subtitle')} />
+        <EmptyState icon={<FileText size={48}/>} title={t('common.no_data')} description={t('charges.subtitle')} />
       ) : (
         <div className="flex flex-col gap-4">
           {sortedGroups.map(([key, { mois, annee, charges: ch }]) => (
