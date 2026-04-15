@@ -14,7 +14,7 @@ class Charge extends Model
     protected $fillable = [
         'user_id', 'libelle', 'categorie', 'montant',
         'jour_echeance', 'mois', 'annee', 'statut',
-        'date_paiement', 'actif', 'is_required'
+        'date_paiement', 'actif', 'is_required', 'priority'
     ];
 
     protected $casts = [

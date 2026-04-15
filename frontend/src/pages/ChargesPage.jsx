@@ -248,9 +248,9 @@ export default function ChargesPage() {
     try {
       const payload = {
         ...form,
+        priority: form.priority,
         is_required: form.priority === 'important',
       }
-      delete payload.priority
 
       if (modal === 'create') {
         await chargesAPI.create(payload); toast.success(t('common.save'))

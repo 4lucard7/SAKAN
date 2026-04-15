@@ -61,6 +61,7 @@ class ChargeController extends Controller
             'montant'       => 'required|numeric|min:0.01',
             'jour_echeance' => 'required|integer|min:1|max:28',
             'is_required'   => 'sometimes|boolean',
+            'priority'      => 'sometimes|in:normal,important',
         ]);
 
         $now = Carbon::now();
@@ -70,6 +71,8 @@ class ChargeController extends Controller
         $validated['annee']   = $now->year;
         $validated['statut']  = 'en_attente';
         $validated['actif']   = true;
+        $validated['priority'] = $validated['priority'] ?? (($validated['is_required'] ?? false) ? 'important' : 'normal');
+        $validated['is_required'] = $validated['priority'] === 'important';
 
         $charge = Charge::create($validated);
 
@@ -101,7 +104,14 @@ class ChargeController extends Controller
             'jour_echeance' => 'sometimes|integer|min:1|max:28',
             'actif'         => 'sometimes|boolean',
             'is_required'   => 'sometimes|boolean',
+            'priority'      => 'sometimes|in:normal,important',
         ]);
+
+        if (isset($validated['priority'])) {
+            $validated['is_required'] = $validated['priority'] === 'important';
+        } elseif (isset($validated['is_required'])) {
+            $validated['priority'] = $validated['is_required'] ? 'important' : 'normal';
+        }
 
         $charge->update($validated);
 
