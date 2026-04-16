@@ -87,11 +87,22 @@ export default function NotificationsPage() {
   }, [tab])
 
   const markRead = async (id) => {
+    const target = notifs.find(n => n.id === id)
+    if (!target) return
+    const wasRead = target.is_read
+
+    // Optimistic update
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: !wasRead } : n))
+    setUnread(prev => wasRead ? prev + 1 : Math.max(0, prev - 1))
+
     try {
       await notificationsAPI.markRead(id)
-      setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: !n.is_read } : n))
-      setUnread(prev => prev - 1)
-    } catch { toast.error('Erreur.') }
+    } catch {
+      // Rollback on error
+      setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: wasRead } : n))
+      setUnread(prev => wasRead ? Math.max(0, prev - 1) : prev + 1)
+      toast.error('Erreur.')
+    }
   }
 
   const markAllRead = async () => {

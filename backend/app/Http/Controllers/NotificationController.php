@@ -36,12 +36,24 @@ class NotificationController extends Controller
 
     /**
      * PATCH /api/notifications/{id}/lire
-     * Marque une notification comme lue
+     * Bascule l'état lu/non-lu d'une notification (toggle)
      */
     public function markAsRead(Request $request, int $id): JsonResponse
     {
         $notif = $request->user()->notifications()->findOrFail($id);
-        $notif->update(['is_read' => true]);
+        $notif->update(['is_read' => !$notif->is_read]);
+
+        return response()->json($notif);
+    }
+
+    /**
+     * PATCH /api/notifications/{id}/non-lue
+     * Marque explicitement une notification comme non lue
+     */
+    public function markAsUnread(Request $request, int $id): JsonResponse
+    {
+        $notif = $request->user()->notifications()->findOrFail($id);
+        $notif->update(['is_read' => false]);
 
         return response()->json($notif);
     }

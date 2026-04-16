@@ -2,8 +2,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { notificationsAPI } from '../services/api';
-import { Sun, Moon, Bell, LogOut, LayoutDashboard, Users, Wallet, Car, Wrench, FileText} from 'lucide-react';
+import NotificationDropdown from './NotificationDropdown';
+import { Sun, Moon, LogOut, LayoutDashboard, Users, Wallet, Car, Wrench, FileText, Bell } from 'lucide-react';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -11,7 +11,7 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark' || 
       (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -23,15 +23,7 @@ export default function Layout({ children }) {
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 
-  useEffect(() => {
-    notificationsAPI.list()
-      .then((response) => {
-        setUnreadNotifications(response.data.unread_count || 0)
-      })
-      .catch(() => {
-        setUnreadNotifications(0)
-      })
-  }, []);
+
 
   useEffect(() => {
     if (darkMode) {
@@ -169,13 +161,8 @@ export default function Layout({ children }) {
               ))}
             </div>
 
-            {/* Notification Bell */}
-            <Link to="/notifications" className="relative p-2 text-gray-400 dark:text-gray-500 hover:text-sakan transition-colors">
-              {unreadNotifications > 0 && (
-                <div className="w-2 h-2 bg-red-500 rounded-full absolute top-2 right-2 border-2 border-white dark:border-slate-900"></div>
-              )}
-              <Bell size={22} />
-            </Link>
+            {/* Notification Dropdown */}
+            <NotificationDropdown />
             
             <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1"></div>
 

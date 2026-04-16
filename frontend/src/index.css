@@ -71,3 +71,23 @@
 /* Animations */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .fade-in { animation: fadeIn 0.25s ease forwards; }
+
+/* Notification Dropdown Animation */
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-dropdown-in { animation: dropdownIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* Subtle bounce for unread badge */
+@keyframes bounceSoft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.animate-bounce-subtle { animation: bounceSoft 2s ease-in-out infinite; }
+
+/* Thin scrollbar for dropdown */
+.scrollbar-thin::-webkit-scrollbar { width: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+.dark .scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; }
