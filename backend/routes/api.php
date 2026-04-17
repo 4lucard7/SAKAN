@@ -43,11 +43,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('debts', DebtController::class);
     Route::patch('/debts/{id}/rembourser', [DebtController::class, 'rembourser']);
 
-    // Véhicule
-    Route::get('/voiture',    [VoitureController::class, 'show']);
-    Route::post('/voiture',   [VoitureController::class, 'store']);
-    Route::put('/voiture',    [VoitureController::class, 'update']);
-    Route::delete('/voiture', [VoitureController::class, 'destroy']);
+    // Véhicule (single / default car support)
+    Route::get('/voiture',    [VoitureController::class, 'showDefault']);
+    Route::post('/voiture',   [VoitureController::class, 'storeDefault']);
+    Route::put('/voiture',    [VoitureController::class, 'updateDefault']);
+    Route::delete('/voiture', [VoitureController::class, 'destroyDefault']);
+
+    // Véhicules multi-voitures
+    Route::get('/voitures',          [VoitureController::class, 'index']);
+    Route::get('/voitures/{id}',     [VoitureController::class, 'show']);
+    Route::post('/voitures',         [VoitureController::class, 'store']);
+    Route::put('/voitures/{id}',     [VoitureController::class, 'update']);
+    Route::delete('/voitures/{id}',  [VoitureController::class, 'destroy']);
 
     //  Maintenances véhicule
     Route::get('/voiture/maintenances',        [MaintenanceController::class, 'index']);

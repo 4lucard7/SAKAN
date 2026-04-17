@@ -28,6 +28,11 @@ class User extends Authenticatable
         return $this->hasMany(Debt::class);
     }
 
+    public function voitures(): HasMany
+    {
+        return $this->hasMany(Voiture::class);
+    }
+
     public function voiture(): HasOne
     {
         return $this->hasOne(Voiture::class);

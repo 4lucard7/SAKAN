@@ -8,33 +8,64 @@ use Illuminate\Http\Request;
 
 class VoitureController extends Controller
 {
+    private function getDefaultVoiture(Request $request): ?Voiture
+    {
+        return $request->user()->voiture;
+    }
+
+    private function getVoitureById(Request $request, int $id): Voiture
+    {
+        return $request->user()->voitures()->findOrFail($id);
+    }
+
+    private function hydrateResponsabilites(Voiture $voiture): void
+    {
+        $voiture->responsabilites = $voiture->responsabilites;
+    }
+
+    /**
+     * GET /api/voitures
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $voitures = $request->user()->voitures()->with('maintenances')->get();
+        $voitures->each(fn ($voiture) => $this->hydrateResponsabilites($voiture));
+
+        return response()->json($voitures);
+    }
+
     /**
      * GET /api/voiture
-     * Retourne la fiche du véhicule de l'utilisateur (unique)
      */
-    public function show(Request $request): JsonResponse
+    public function showDefault(Request $request): JsonResponse
     {
-        $voiture = $request->user()->voiture;
+        $voiture = $this->getDefaultVoiture($request);
 
         if (!$voiture) {
             return response()->json(null, 200);
         }
 
-        $voiture->responsabilites = $voiture->responsabilites;
+        $this->hydrateResponsabilites($voiture);
 
         return response()->json($voiture->load('maintenances'));
     }
 
     /**
-     * POST /api/voiture
-     * Crée la fiche véhicule (une seule autorisée par utilisateur)
+     * GET /api/voitures/{id}
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $voiture = $this->getVoitureById($request, $id);
+        $this->hydrateResponsabilites($voiture);
+
+        return response()->json($voiture->load('maintenances'));
+    }
+
+    /**
+     * POST /api/voitures
      */
     public function store(Request $request): JsonResponse
     {
-        if ($request->user()->voiture) {
-            return response()->json(['message' => 'Un véhicule est déjà enregistré. Utilisez PUT pour le modifier.'], 422);
-        }
-
         $validated = $request->validate([
             'car_name'                    => 'required|string|max:100',
             'current_km'                  => 'required|integer|min:0',
@@ -46,22 +77,25 @@ class VoitureController extends Controller
 
         $validated['user_id'] = $request->user()->id;
         $voiture = Voiture::create($validated);
-        $voiture->responsabilites = $voiture->responsabilites;
+        $this->hydrateResponsabilites($voiture);
 
         return response()->json($voiture, 201);
     }
 
     /**
-     * PUT /api/voiture
-     * Met à jour la fiche véhicule
+     * POST /api/voiture
      */
-    public function update(Request $request): JsonResponse
+    public function storeDefault(Request $request): JsonResponse
     {
-        $voiture = $request->user()->voiture;
+        return $this->store($request);
+    }
 
-        if (!$voiture) {
-            return response()->json(['message' => 'Aucun véhicule enregistré.'], 404);
-        }
+    /**
+     * PUT /api/voitures/{id}
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $voiture = $this->getVoitureById($request, $id);
 
         $validated = $request->validate([
             'car_name'                    => 'sometimes|string|max:100',
@@ -73,17 +107,42 @@ class VoitureController extends Controller
         ]);
 
         $voiture->update($validated);
-        $voiture->responsabilites = $voiture->responsabilites;
+        $this->hydrateResponsabilites($voiture);
 
         return response()->json($voiture);
     }
 
     /**
+     * PUT /api/voiture
+     */
+    public function updateDefault(Request $request): JsonResponse
+    {
+        $voiture = $this->getDefaultVoiture($request);
+
+        if (!$voiture) {
+            return response()->json(['message' => 'Aucun véhicule enregistré.'], 404);
+        }
+
+        return $this->update($request, $voiture->id);
+    }
+
+    /**
+     * DELETE /api/voitures/{id}
+     */
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $voiture = $this->getVoitureById($request, $id);
+        $voiture->delete();
+
+        return response()->json(['message' => 'Véhicule supprimé.']);
+    }
+
+    /**
      * DELETE /api/voiture
      */
-    public function destroy(Request $request): JsonResponse
+    public function destroyDefault(Request $request): JsonResponse
     {
-        $voiture = $request->user()->voiture;
+        $voiture = $this->getDefaultVoiture($request);
 
         if (!$voiture) {
             return response()->json(['message' => 'Aucun véhicule enregistré.'], 404);
