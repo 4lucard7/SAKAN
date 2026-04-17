@@ -66,6 +66,14 @@ export const voitureAPI = {
   delete:  () => api.delete('/voiture'),
 }
 
+export const voituresAPI = {
+  list:    () => api.get('/voitures'),
+  get:     (id) => api.get(`/voitures/${id}`),
+  create:  (data) => api.post('/voitures', data),
+  update:  (id, data) => api.put(`/voitures/${id}`, data),
+  delete:  (id) => api.delete(`/voitures/${id}`),
+}
+
 // ── Maintenances ──────────────────────────────────────────────────────
 export const maintenanceAPI = {
   list:    ()          => api.get('/voiture/maintenances'),
