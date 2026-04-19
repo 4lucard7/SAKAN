@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import NotificationDropdown from './NotificationDropdown';
-import { Sun, Moon, LogOut, LayoutDashboard, Users, Wallet, Car, Wrench, FileText, Bell } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, Users, Wallet, Car, Wrench, FileText, Bell, Menu, X } from 'lucide-react';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -11,7 +11,7 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem('theme') === 'dark' || 
       (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -22,6 +22,11 @@ export default function Layout({ children }) {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
 
 
@@ -65,11 +70,37 @@ export default function Layout({ children }) {
 
   return (
     <div className={`flex h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300 ${i18n.language === 'ar' ? 'font-arabic' : ''}`} dir={i18n.language === 'ar' ? 'rtl' : 'ltr'}>
-      {/* 📱 Sidebar */}
-      <aside className={`w-64 bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 flex flex-col transition-colors duration-300 ${i18n.language === 'ar' ? 'border-l' : 'border-r'}`}>
-        {/* Logo */}
+      {/* 📱 Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-          <div className="flex items-center justify-center gap-2 mb-6 mt-5">
+      {/* 📱 Sidebar */}
+      <aside className={`fixed inset-y-0 z-50 w-64 bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-800 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        sidebarOpen 
+          ? 'translate-x-0' 
+          : i18n.language === 'ar' 
+            ? 'translate-x-full' 
+            : '-translate-x-full'
+      } ${
+        i18n.language === 'ar' 
+          ? 'right-0 border-l' 
+          : 'left-0 border-r'
+      }`}>
+        {/* Close button for mobile */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className={`absolute top-4 p-2 rounded-lg bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 lg:hidden hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors ${
+            i18n.language === 'ar' ? 'left-4' : 'right-4'
+          }`}
+        >
+          <X size={20} />
+        </button>
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 mb-6 mt-5 px-4">
           <div className="w-9 h-9 rounded-full bg-[#2196F3] flex items-center justify-center shadow">
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
@@ -86,15 +117,15 @@ export default function Layout({ children }) {
         </div>
         
 
-        <nav className="flex-1 px-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 space-y-2 overflow-y-auto pb-4">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             const Icon = item.icon;
-
             return (
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
                   isActive
                     ? 'bg-[#2196F3]  text-dark font-bold shadow-sm'
@@ -109,9 +140,12 @@ export default function Layout({ children }) {
         </nav>
 
         {/* Logout Button at bottom */}
-        <div className="p-4 border-t border-gray-100 dark:border-slate-800">
+        <div className="p-4 border-t border-gray-100 dark:border-slate-800 mt-auto">
           <button
-            onClick={handleLogout}
+            onClick={() => {
+              setSidebarOpen(false);
+              handleLogout();
+            }}
             className="flex items-center w-full px-4 py-3 text-red-500 font-medium hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-colors"
           >
             <LogOut size={18} className="mr-2" />
@@ -124,30 +158,52 @@ export default function Layout({ children }) {
       <main className="flex-1 flex flex-col overflow-hidden">
         
         {/* Top Header */}
-        <header className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-8 py-4 flex justify-between items-center shadow-sm transition-colors duration-300">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-              {t('common.welcome')} {user?.name || 'User'}
-            </h2>
+        <header className="bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800 px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 md:py-4 flex justify-between items-center shadow-sm transition-colors duration-300">
+          <div className="flex items-center gap-1.5 sm:gap-3 md:gap-4 min-w-0">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-1.5 sm:p-2 rounded-lg bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:text-sakan lg:hidden transition-colors flex-shrink-0"
+              title="Menu"
+            >
+              <Menu size={18} className="sm:hidden" />
+              <Menu size={20} className="hidden sm:block" />
+            </button>
+            
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 dark:text-white truncate">
+                {t('common.welcome')} {user?.name || 'User'}
+              </h2>
+            </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
             {/* Theme Toggle */}
             <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:text-sakan transition-colors shadow-inner"
+              className="p-1.5 sm:p-2 rounded-lg bg-gray-50 dark:bg-slate-800 text-gray-500 dark:text-gray-400 hover:text-sakan transition-colors shadow-inner"
               title={darkMode ? 'Light Mode' : 'Dark Mode'}
             >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+              {darkMode ? (
+                <>
+                  <Sun size={18} className="sm:hidden" />
+                  <Sun size={20} className="hidden sm:block" />
+                </>
+              ) : (
+                <>
+                  <Moon size={18} className="sm:hidden" />
+                  <Moon size={20} className="hidden sm:block" />
+                </>
+              )}
             </button>
 
             {/* Language Selector */}
-            <div className="flex items-center gap-1 bg-gray-50 dark:bg-slate-800 p-1 rounded-lg shadow-inner">
+            <div className="hidden sm:flex items-center gap-0.5 md:gap-1 bg-gray-50 dark:bg-slate-800 p-0.5 md:p-1 rounded-lg shadow-inner">
               {languages.map((lang) => (
                 <button
                   key={lang.code}
                   onClick={() => changeLanguage(lang.code)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-md text-xs md:text-sm font-medium transition-all ${
                     i18n.language === lang.code
                       ? 'bg-white dark:bg-slate-700 text-sakan shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white'
@@ -161,20 +217,37 @@ export default function Layout({ children }) {
               ))}
             </div>
 
+            {/* Mobile Language Selector */}
+            <div className="sm:hidden">
+              <select
+                value={i18n.language}
+                onChange={(e) => changeLanguage(e.target.value)}
+                className="bg-gray-50 dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded-lg px-2 py-1.5 text-xs border border-gray-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-sakan"
+              >
+                {languages.map((lang) => (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.code.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Notification Dropdown */}
-            <NotificationDropdown />
+            <div className="hidden sm:block">
+              <NotificationDropdown />
+            </div>
             
-            <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1"></div>
+            <div className="h-8 w-px bg-gray-200 dark:bg-slate-800 mx-1 hidden md:block"></div>
 
             {/* User Avatar */}
-            <div className="w-10 h-10 bg-sakan rounded-full flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white dark:ring-slate-800">
+            <div className="hidden md:flex w-9 h-9 md:w-10 md:h-10 bg-sakan rounded-full items-center justify-center text-white font-bold shadow-md ring-2 ring-white dark:ring-slate-800 flex-shrink-0">
               {user?.name?.charAt(0) || 'U'}
             </div>
           </div>
         </header>
 
         {/* Dynamic Page Content injected here */}
-        <div className="flex-1 overflow-auto p-8 dark:text-gray-200">
+        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 dark:text-gray-200">
           {children}
         </div>
       </main>

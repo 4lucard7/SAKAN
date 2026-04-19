@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { dashboardAPI, tiersAPI } from '../services/api'
+import { dashboardAPI, tiersAPI, voituresAPI } from '../services/api'
 import { Spinner, Badge } from '../components/Ui'
-import { TrendingUp, TrendingDown, Car, AlertTriangle, ChevronRight } from 'lucide-react'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { Car, AlertTriangle, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 const COLORS = ['#25D1F4', '#00b4d8', '#0096c7', '#0077b6', '#023e8a', '#90e0ef']
@@ -46,17 +45,19 @@ const DEFAULT_DASHBOARD = {
 }
 
 export default function Dashboard() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [data,       setData]       = useState(DEFAULT_DASHBOARD)
   const [recentTiers,setRecentTiers]= useState([])
+  const [voitures,   setVoitures]   = useState([])
   const [loading,    setLoading]    = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
-    Promise.all([dashboardAPI.get(), tiersAPI.list()])
-      .then(([d, t]) => {
+    Promise.all([dashboardAPI.get(), tiersAPI.list(), voituresAPI.list()])
+      .then(([d, t, v]) => {
         setData(d.data)
         setRecentTiers(t.data.slice(0, 3))
+        setVoitures(v.data)
       })
       .catch(() => {
         setData(DEFAULT_DASHBOARD)
@@ -70,7 +71,7 @@ export default function Dashboard() {
     </div>
   )
 
-  const { finances, charges, voiture, charts } = data
+  const { finances, charges, voiture } = data
 
   // Charges statut summary
   const chargesStatut = [
@@ -79,7 +80,7 @@ export default function Dashboard() {
     { label: t('status.overdue'),  value: charges.en_retard,   color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
   ]
 
-  const isDark = document.documentElement.classList.contains('dark')
+  // const isDark = document.documentElement.classList.contains('dark')
 
   return (
     <div className="fade-in flex flex-col gap-6">
@@ -170,40 +171,36 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Charts */}
-      {charts?.charges_par_categorie?.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="card dark:bg-slate-900 dark:border-white/10 transition-colors">
-            <h2 className="font-display font-semibold text-gray-800 dark:text-white mb-4">{t('dashboard.charges_by_cat')}</h2>
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie data={charts.charges_par_categorie} dataKey="total" nameKey="categorie" cx="50%" cy="50%" outerRadius={80} label>
-                  {charts.charges_par_categorie.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="transparent" />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#ffffff' : '#000000' }}
-                  formatter={(v) => `${v.toLocaleString()} MAD`} 
-                />
-                <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-              </PieChart>
-            </ResponsiveContainer>
+      {/* Vehicles */}
+      {voitures.length > 0 && (
+        <div className="card dark:bg-slate-900 dark:border-white/10 transition-colors">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('vehicle.title')}</h2>
+            <button onClick={() => navigate('/voiture')}
+              className="text-xs text-sakan-blue dark:text-sakan font-medium hover:underline flex items-center gap-0.5">
+              {t('common.actions')} <ChevronRight size={12} />
+            </button>
           </div>
-          <div className="card dark:bg-slate-900 dark:border-white/10 transition-colors">
-            <h2 className="font-display font-semibold text-gray-800 dark:text-white mb-4">{t('dashboard.debt_evolution')}</h2>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={charts.evolution_dettes}>
-                <XAxis dataKey="mois" tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip 
-                  cursor={{ fill: isDark ? '#334155' : '#f1f5f9' }}
-                  contentStyle={{ backgroundColor: isDark ? '#1e293b' : '#ffffff', borderColor: isDark ? '#334155' : '#e2e8f0', color: isDark ? '#ffffff' : '#000000' }}
-                  formatter={(v) => `${v.toLocaleString()} MAD`} 
-                />
-                <Bar dataKey="total" fill="#25D1F4" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {voitures.map(car => (
+              <div key={car.id} className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                    <Car size={20} className="text-sakan-blue dark:text-sakan" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 dark:text-white">{car.car_name}</p>
+                    <p className="text-xs text-gray-400 dark:text-slate-500">{car.current_km?.toLocaleString()} km</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/voiture')}
+                  className="w-full bg-sakan-blue text-white rounded-lg py-2 px-4 text-sm font-medium hover:bg-sakan-blue/90 transition-colors"
+                >
+                  {t('common.actions')}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -220,7 +217,7 @@ export default function Dashboard() {
               <div key={i} className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl p-3 border border-orange-100 dark:border-slate-700 shadow-sm">
                 <Car size={14} className="text-orange-400 flex-shrink-0" />
                 <span className="text-sm text-gray-700 dark:text-slate-300">
-                  {a.type === 'maintenance'
+                  <span className="font-medium">{a.car_name}:</span> {a.type === 'maintenance'
                     ? `${a.part_name} — ${a.statut}`
                     : `${a.document} — ${a.statut}${a.jours_restants != null ? ` (J-${a.jours_restants})` : ''}`}
                 </span>
@@ -229,6 +226,8 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      
     </div>
   )
 }
