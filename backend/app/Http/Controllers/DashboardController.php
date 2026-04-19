@@ -54,6 +54,7 @@ class DashboardController extends Controller
                 if (in_array($info['statut'], ['alerte_j7', 'alerte_j30', 'expire'])) {
                     $voitureAlertes[] = [
                         'type'           => 'responsabilite',
+                        'car_name'       => $voiture->car_name,
                         'document'       => $doc,
                         'statut'         => $info['statut'],
                         'jours_restants' => $info['jours_restants'] ?? null,
@@ -66,6 +67,7 @@ class DashboardController extends Controller
                 if (in_array($m->statut_alerte, ['alerte_km', 'alerte_date', 'depasse'])) {
                     $voitureAlertes[] = [
                         'type'         => 'maintenance',
+                        'car_name'     => $voiture->car_name,
                         'part_name'    => $m->part_name,
                         'statut'       => $m->statut_alerte,
                         'prochaine_km' => $m->prochain_km,
