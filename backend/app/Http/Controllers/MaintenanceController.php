@@ -8,26 +8,23 @@ use Illuminate\Http\Request;
 
 class MaintenanceController extends Controller
 {
-    /**
-     * Helper : récupère la voiture de l'utilisateur ou 404
-     */
-    private function getVoiture(Request $request)
-    {
-        $voiture = $request->user()->voiture;
-        if (!$voiture) {
-            abort(404, 'Aucun véhicule enregistré.');
-        }
-        return $voiture;
-    }
 
     /**
      * GET /api/voiture/maintenances
      */
     public function index(Request $request): JsonResponse
     {
-        $voiture = $request->user()->voiture;
-        if (!$voiture) {
-            return response()->json([]);
+        $carId = $request->query('car_id');
+        if ($carId) {
+            $voiture = $request->user()->voitures()->find($carId);
+            if (!$voiture) {
+                abort(403, 'Accès refusé à cette voiture.');
+            }
+        } else {
+            $voiture = $request->user()->voiture;
+            if (!$voiture) {
+                return response()->json([]);
+            }
         }
 
         $maintenances = $voiture->maintenances()->get()->map(function ($m) {
@@ -45,9 +42,8 @@ class MaintenanceController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $voiture = $this->getVoiture($request);
-
         $validated = $request->validate([
+            'car_id'              => 'sometimes|integer|exists:voiture,id',
             'part_name'           => 'required|string|max:100',
             'kilometrage_actuel'  => 'required|integer|min:0',
             'limit_km'            => 'nullable|integer|min:0',
@@ -55,10 +51,34 @@ class MaintenanceController extends Controller
             'duration'            => 'nullable|integer|min:1|max:120',
             'cost'                => 'nullable|numeric|min:0',
             'notes'               => 'nullable|string',
-            'is_required'         => 'sometimes|boolean',
+            'priority'            => 'required|in:normal,important',
         ]);
 
-        $validated['car_id'] = $voiture->id;
+        if (!isset($validated['car_id'])) {
+            $voiture = $request->user()->voiture;
+            if (!$voiture) {
+                abort(404, 'Aucun véhicule enregistré.');
+            }
+            $validated['car_id'] = $voiture->id;
+        } else {
+            $voiture = $request->user()->voitures()->find($validated['car_id']);
+            if (!$voiture) {
+                abort(403, 'Accès refusé à cette voiture.');
+            }
+        }
+
+        // Map cost to cout for database
+        if (array_key_exists('cost', $validated)) {
+            $validated['cout'] = $validated['cost'];
+            unset($validated['cost']);
+        }
+
+        // Map priority to is_required
+        if (isset($validated['priority'])) {
+            $validated['is_required'] = $validated['priority'] === 'important';
+            unset($validated['priority']);
+        }
+
         $maintenance = VoitureMaintenance::create($validated);
 
         // Met à jour le kilométrage actuel du véhicule si supérieur
@@ -78,8 +98,11 @@ class MaintenanceController extends Controller
      */
     public function show(Request $request, int $id): JsonResponse
     {
-        $voiture     = $this->getVoiture($request);
-        $maintenance = $voiture->maintenances()->findOrFail($id);
+        $maintenance = VoitureMaintenance::where('id', $id)
+            ->whereHas('voiture', function($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
+            })
+            ->firstOrFail();
 
         $maintenance->prochaine_date = $maintenance->prochaine_date;
         $maintenance->prochain_km    = $maintenance->prochain_km;
@@ -93,10 +116,14 @@ class MaintenanceController extends Controller
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        $voiture     = $this->getVoiture($request);
-        $maintenance = $voiture->maintenances()->findOrFail($id);
+        $maintenance = VoitureMaintenance::where('id', $id)
+            ->whereHas('voiture', function($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
+            })
+            ->firstOrFail();
 
         $validated = $request->validate([
+            'car_id'              => 'sometimes|integer|exists:voiture,id',
             'part_name'           => 'sometimes|string|max:100',
             'kilometrage_actuel'  => 'sometimes|integer|min:0',
             'limit_km'            => 'nullable|integer|min:0',
@@ -104,8 +131,27 @@ class MaintenanceController extends Controller
             'duration'            => 'nullable|integer|min:1|max:120',
             'cost'                => 'nullable|numeric|min:0',
             'notes'               => 'nullable|string',
-            'is_required'         => 'sometimes|boolean',
+            'priority'            => 'sometimes|in:normal,important',
         ]);
+
+        if (isset($validated['car_id'])) {
+            $voiture = $request->user()->voitures()->find($validated['car_id']);
+            if (!$voiture) {
+                abort(403, 'Accès refusé à cette voiture.');
+            }
+        }
+
+        // Map cost to cout for database
+        if (array_key_exists('cost', $validated)) {
+            $validated['cout'] = $validated['cost'];
+            unset($validated['cost']);
+        }
+
+        // Map priority to is_required
+        if (isset($validated['priority'])) {
+            $validated['is_required'] = $validated['priority'] === 'important';
+            unset($validated['priority']);
+        }
 
         $maintenance->update($validated);
         $maintenance->prochaine_date = $maintenance->prochaine_date;
@@ -120,8 +166,12 @@ class MaintenanceController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
-        $voiture     = $this->getVoiture($request);
-        $maintenance = $voiture->maintenances()->findOrFail($id);
+        $maintenance = VoitureMaintenance::where('id', $id)
+            ->whereHas('voiture', function($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
+            })
+            ->firstOrFail();
+
         $maintenance->delete();
 
         return response()->json(['message' => 'Maintenance supprimée.']);
