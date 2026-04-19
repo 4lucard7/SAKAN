@@ -115,13 +115,17 @@ const formatKm = (value) => {
 }
 
 export default function VoiturePage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [voitures, setVoitures] = useState([])
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [saving, setSaving] = useState(false)
+
+  const formatDate = (value) => {
+    return value ? new Date(value).toLocaleDateString(i18n.language) : ''
+  }
 
   const load = () => {
     setLoading(true)
@@ -216,7 +220,7 @@ export default function VoiturePage() {
                     <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{formatKm(car.current_km)} km</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">{car.assurance_expiry ? car.assurance_expiry : t('vehicle.no_document')}</span>
+                    <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">{car.assurance_expiry ? formatDate(car.assurance_expiry) : t('vehicle.no_document')}</span>
                     <span className="badge bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">{car.vignette_expiry ? t('vehicle.vignette') : t('vehicle.no_document')}</span>
                   </div>
                 </div>
@@ -260,10 +264,10 @@ export default function VoiturePage() {
                 </div>
                 <div className="grid grid-cols-1 gap-3">
                   {[
-                    { label: t('vehicle.doc_assurance'), value: selected.assurance_expiry },
-                    { label: t('vehicle.doc_vignette'), value: selected.vignette_expiry },
-                    { label: t('vehicle.doc_controle'), value: selected.controle_technique_expiry },
-                    { label: t('vehicle.doc_carte_grise'), value: selected.carte_grise_expiry },
+                    { label: t('vehicle.doc_assurance'), value: formatDate(selected.assurance_expiry) },
+                    { label: t('vehicle.doc_vignette'), value: formatDate(selected.vignette_expiry) },
+                    { label: t('vehicle.doc_controle'), value: formatDate(selected.controle_technique_expiry) },
+                    { label: t('vehicle.doc_carte_grise'), value: formatDate(selected.carte_grise_expiry) },
                   ].map(info => (
                     <div key={info.label} className="rounded-3xl bg-gray-50 dark:bg-slate-900 p-4">
                       <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">{info.label}</p>

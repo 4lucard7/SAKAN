@@ -86,7 +86,8 @@
     "doc_carte_grise": "Registration Card",
     "doc_not_set": "Not set",
     "doc_expiry": "Expiry Date",
-    "alerts": "Document Alerts"
+    "alerts": "Document Alerts",
+    "select_car": "Select a Vehicle"
   },
   "maintenance": {
     "title": "Vehicle Maintenance",

@@ -86,7 +86,8 @@
     "doc_carte_grise": "البطاقة الرمادية",
     "doc_not_set": "غير محدد",
     "doc_expiry": "تاريخ الانتهاء",
-    "alerts": "تنبيهات الوثائق"
+    "alerts": "تنبيهات الوثائق",
+    "select_car": "اختر سيارة"
   },
   "maintenance": {
     "title": "صيانة السيارة",

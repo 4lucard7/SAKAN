@@ -86,7 +86,8 @@
     "doc_carte_grise": "Carte Grise",
     "doc_not_set": "Non renseigné",
     "doc_expiry": "Date d'expiration",
-    "alerts": "Alertes documents"
+    "alerts": "Alertes documents",
+    "select_car": "Sélectionner un véhicule"
   },
   "maintenance": {
     "title": "Entretien Véhicule",

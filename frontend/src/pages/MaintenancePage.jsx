@@ -1,27 +1,46 @@
 import { useEffect, useState } from 'react'
-import { maintenanceAPI, voitureAPI } from '../services/api'
-import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge } from '../components/Ui'
+import { maintenanceAPI, voitureAPI, voituresAPI } from '../services/api'
+import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge, Select } from '../components/Ui'
 import { Plus, Pencil, Trash2, Wrench, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-function MaintenanceForm({ initial = {}, onSave, loading }) {
+function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
   const { t } = useTranslation()
+  const partNames = [
+    'Vidange', 'Pneus', 'Freins', 'Filtre à huile', 'Bougies', 'Courroie de distribution', 'Amortisseurs'
+  ]
   const [form, setForm] = useState({
+    car_id: initial?.car_id || voitures[0]?.id || '',
     part_name: '', kilometrage_actuel: '', limit_km: '',
     last_change_date: '', duration: '', cost: '', notes: '',
     priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal'),
     ...initial
   })
+
+  useEffect(() => {
+    if (!form.car_id && voitures[0]?.id) {
+      setForm(f => ({ ...f, car_id: voitures[0].id }))
+    }
+  }, [voitures])
+
   const h = e => {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
   }
   return (
     <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
+      <Field label={t('vehicle.car')} required>
+        <select name="car_id" required value={form.car_id} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+          {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
+        </select>
+      </Field>
       <Field label={t('maintenance.part_name')} required>
-        <input name="part_name" required value={form.part_name} onChange={h}
+        <input list="part_names" name="part_name" required value={form.part_name} onChange={h}
           className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Vidange, Pneus, Freins..." />
+        <datalist id="part_names">
+          {partNames.map(part => <option key={part} value={part} />)}
+        </datalist>
       </Field>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Field label={t('vehicle.current_km')} required>
@@ -88,7 +107,8 @@ const formatKm = (value) => {
 export default function MaintenancePage() {
   const { t, i18n } = useTranslation()
   const [maintenances, setMaintenances] = useState([])
-  const [voiture,      setVoiture]      = useState(null)
+  const [voitures,     setVoitures]     = useState([])
+  const [selectedCar,  setSelectedCar]  = useState(null)
   const [loading,      setLoading]      = useState(true)
   const [modal,        setModal]        = useState(null)
   const [deleting,     setDeleting]     = useState(null)
@@ -96,22 +116,40 @@ export default function MaintenancePage() {
 
   const load = () => {
     setLoading(true)
-    Promise.all([maintenanceAPI.list(), voitureAPI.get()])
-      .then(([m, v]) => { setMaintenances(m.data); setVoiture(v.data) })
+    Promise.all([voituresAPI.list()])
+      .then(([v]) => { 
+        setVoitures(v.data)
+        if (v.data.length > 0) {
+          setSelectedCar(v.data[0])
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }
   useEffect(load, [])
 
+  const loadMaintenances = () => {
+    if (!selectedCar) return
+    maintenanceAPI.list({ params: { car_id: selectedCar.id } })
+      .then(m => setMaintenances(m.data))
+      .catch(() => {})
+  }
+  useEffect(loadMaintenances, [selectedCar])
+
   const save = async (form) => {
     setSaving(true)
     try {
-      if (modal === 'create') {
-        await maintenanceAPI.create(form); toast.success(t('common.save'))
-      } else {
-        await maintenanceAPI.update(modal.m.id, form); toast.success(t('common.save'))
+      const payload = { ...form }
+      if (!payload.car_id && selectedCar) {
+        payload.car_id = selectedCar.id
       }
-      setModal(null); load()
+
+      if (modal === 'create') {
+        await maintenanceAPI.create(payload); toast.success(t('common.save'))
+      } else {
+        await maintenanceAPI.update(modal.m.id, payload); toast.success(t('common.save'))
+      }
+      setModal(null); loadMaintenances()
     } catch (err) {
       const errors = err.response?.data?.errors
       if (errors) Object.values(errors).flat().forEach(e => toast.error(e))
@@ -123,14 +161,14 @@ export default function MaintenancePage() {
     setSaving(true)
     try {
       await maintenanceAPI.delete(deleting.id); toast.success(t('common.delete'))
-      setDeleting(null); load()
+      setDeleting(null); loadMaintenances()
     } catch { toast.error('Error') }
     finally { setSaving(false) }
   }
 
   if (loading) return <div className="flex justify-center py-16"><Spinner size={32} /></div>
 
-  if (!voiture) return (
+  if (voitures.length === 0) return (
     <div className="flex flex-col items-center justify-center h-64 gap-3 dark:bg-slate-900 dark:border-white/10 rounded-2xl">
       <Wrench size={40} className="text-gray-200 dark:text-slate-800" />
       <p className="text-gray-400 dark:text-slate-600 font-medium">{t('maintenance.register_car_first')}</p>
@@ -143,34 +181,49 @@ export default function MaintenancePage() {
         title={t('maintenance.title')}
         subtitle={t('vehicle.subtitle')}
         action={
-          <button className="btn-primary" onClick={() => setModal('create')}>
+          <button className="btn-primary" onClick={() => setModal('create')} disabled={!selectedCar}>
             <Plus size={16} /> {t('maintenance.add')}
           </button>
         }
       />
 
-      {/* Vehicle info */}
+      {/* Car selector */}
       <div className="card flex items-center gap-4 py-4 dark:bg-slate-900 dark:border-white/10 transition-colors">
         <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center">
           <Wrench size={18} className="text-sakan-blue dark:text-sakan" />
         </div>
-        <div>
-          <p className="font-display font-semibold text-gray-800 dark:text-white transition-colors">{voiture.car_name}</p>
-          <p className="text-xs text-gray-400 dark:text-slate-500">{formatKm(voiture.current_km)} km actuels</p>
-        </div>
-        <div className="ml-auto flex gap-6 text-center">
-          <div>
-            <p className="font-display font-bold text-xl text-sakan-blue dark:text-sakan">{maintenances.length}</p>
-            <p className="text-xs text-gray-400 dark:text-slate-500">{t('common.maintenance')}</p>
-          </div>
-          <div>
-            <p className="font-display font-bold text-xl text-orange-500 dark:text-orange-400">
-              {maintenances.filter(m => m.statut_alerte && m.statut_alerte !== 'ok').length}
-            </p>
-            <p className="text-xs text-gray-400 dark:text-slate-500">{t('vehicle.alerts')}</p>
-          </div>
+        <div className="flex-1">
+          <p className="font-display font-semibold text-gray-800 dark:text-white transition-colors">{t('vehicle.select_car')}</p>
+          <select value={selectedCar?.id || ''} onChange={e => setSelectedCar(voitures.find(v => v.id == e.target.value))} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white mt-1">
+            {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
+          </select>
         </div>
       </div>
+
+      {/* Vehicle info */}
+      {selectedCar && (
+        <div className="card flex items-center gap-4 py-4 dark:bg-slate-900 dark:border-white/10 transition-colors">
+          <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center">
+            <Wrench size={18} className="text-sakan-blue dark:text-sakan" />
+          </div>
+          <div>
+            <p className="font-display font-semibold text-gray-800 dark:text-white transition-colors">{selectedCar.car_name}</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500">{formatKm(selectedCar.current_km)} km actuels</p>
+          </div>
+          <div className="ml-auto flex gap-6 text-center">
+            <div>
+              <p className="font-display font-bold text-xl text-sakan-blue dark:text-sakan">{maintenances.length}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500">{t('common.maintenance')}</p>
+            </div>
+            <div>
+              <p className="font-display font-bold text-xl text-orange-500 dark:text-orange-400">
+                {maintenances.filter(m => m.statut_alerte && m.statut_alerte !== 'ok').length}
+              </p>
+              <p className="text-xs text-gray-400 dark:text-slate-500">{t('vehicle.alerts')}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="card p-0 overflow-hidden dark:bg-slate-900 dark:border-white/10 transition-colors">
@@ -237,7 +290,7 @@ export default function MaintenancePage() {
 
       <Modal open={!!modal} onClose={() => setModal(null)} size="lg"
         title={modal === 'create' ? t('maintenance.add') : t('common.edit')}>
-        <MaintenanceForm initial={modal?.m} onSave={save} loading={saving} />
+        <MaintenanceForm initial={modal?.m} onSave={save} loading={saving} voitures={voitures} />
       </Modal>
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)}

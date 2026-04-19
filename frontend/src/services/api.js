@@ -76,7 +76,7 @@ export const voituresAPI = {
 
 // ── Maintenances ──────────────────────────────────────────────────────
 export const maintenanceAPI = {
-  list:    ()          => api.get('/voiture/maintenances'),
+  list:    (config) => api.get('/voiture/maintenances', config),
   get:     (id)        => api.get(`/voiture/maintenances/${id}`),
   create:  (data)      => api.post('/voiture/maintenances', data),
   update:  (id, data)  => api.put(`/voiture/maintenances/${id}`, data),
