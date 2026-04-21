@@ -191,68 +191,126 @@ export default function DebtsPage() {
         ) : filtered.length === 0 ? (
           <EmptyState icon={<Wallet size={48} />} title={t('common.no_data')} description={t('debts.all_transactions')} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
-                  <th className="py-3 px-6 text-left font-medium">{t('debts.tier_name')}</th>
-                  <th className="py-3 px-6 text-left font-medium">{t('common.type')}</th>
-                  <th className="py-3 px-6 text-left font-medium">{t('debts.total_prete')}</th>
-                  <th className="py-3 px-6 text-left font-medium">{t('debts.total_rembourse')}</th>
-                  <th className="py-3 px-6 text-left font-medium">{t('debts.reste')}</th>
-                  <th className="py-3 px-6 text-left font-medium">Priorité</th>
-                  <th className="py-3 px-6 text-left font-medium">{t('debts.due_date')}</th>
-                  <th className="py-3 px-6 text-left font-medium">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(d => (
-                  <tr key={d.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-6">
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
+                    <th className="py-3 px-6 text-left font-medium">{t('debts.tier_name')}</th>
+                    <th className="py-3 px-6 text-left font-medium">{t('common.type')}</th>
+                    <th className="py-3 px-6 text-left font-medium">{t('debts.total_prete')}</th>
+                    <th className="py-3 px-6 text-left font-medium">{t('debts.total_rembourse')}</th>
+                    <th className="py-3 px-6 text-left font-medium">{t('debts.reste')}</th>
+                    <th className="py-3 px-6 text-left font-medium">Priorité</th>
+                    <th className="py-3 px-6 text-left font-medium">{t('debts.due_date')}</th>
+                    <th className="py-3 px-6 text-left font-medium">{t('common.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(d => (
+                    <tr key={d.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 px-6">
+                        <div className="flex items-center gap-2">
+                          <Avatar name={d.tier?.name} size="sm" />
+                          <span className="font-medium dark:text-slate-200">{d.tier?.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-6">
+                        <span className={`badge ${d.type === 'outflow' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
+                          {d.type === 'outflow' ? t('status.dette') : t('status.creance')}
+                        </span>
+                      </td>
+                      <td className="py-3 px-6 font-semibold dark:text-white">{Number(d.total_prete).toLocaleString()} MAD</td>
+                      <td className="py-3 px-6 text-green-600 dark:text-green-400 font-medium">{Number(d.total_rembourse).toLocaleString()} MAD</td>
+                      <td className="py-3 px-6 font-bold text-sakan-blue dark:text-sakan">{Number(d.reste).toLocaleString()} MAD</td>
+                      <td className="py-3 px-6">
+                        <StatutBadge color={(d.priority === 'important' || d.is_required) ? 'red' : 'gray'}>
+                          {(d.priority || (d.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
+                        </StatutBadge>
+                      </td>
+                      <td className="py-3 px-6 text-gray-400 dark:text-slate-500 text-xs">
+                        {d.due_date ? new Date(d.due_date).toLocaleDateString(i18n.language) : '—'}
+                      </td>
+                      <td className="py-3 px-6">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setModal({ debt: d })}
+                            className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                            <Pencil size={13} />
+                          </button>
+                          <button onClick={() => setDeleting(d)}
+                            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                          {Number(d.reste) > 0 && (
+                            <button onClick={() => setRemb(d)}
+                              className="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-400 hover:text-green-600 transition-colors" title={t('common.rembourser')}>
+                              <MoreVertical size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden p-4 space-y-3">
+              {filtered.map(d => (
+                <div key={d.id} className="border border-gray-100 dark:border-slate-800 rounded-lg p-4 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Avatar name={d.tier?.name} size="sm" />
                         <span className="font-medium dark:text-slate-200">{d.tier?.name}</span>
                       </div>
-                    </td>
-                    <td className="py-3 px-6">
-                      <span className={`badge ${d.type === 'outflow' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
+                      <span className={`badge text-xs ${d.type === 'outflow' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
                         {d.type === 'outflow' ? t('status.dette') : t('status.creance')}
                       </span>
-                    </td>
-                    <td className="py-3 px-6 font-semibold dark:text-white">{Number(d.total_prete).toLocaleString()} MAD</td>
-                    <td className="py-3 px-6 text-green-600 dark:text-green-400 font-medium">{Number(d.total_rembourse).toLocaleString()} MAD</td>
-                    <td className="py-3 px-6 font-bold text-sakan-blue dark:text-sakan">{Number(d.reste).toLocaleString()} MAD</td>
-                    <td className="py-3 px-6">
-                      <StatutBadge color={(d.priority === 'important' || d.is_required) ? 'red' : 'gray'}>
-                        {(d.priority || (d.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
-                      </StatutBadge>
-                    </td>
-                    <td className="py-3 px-6 text-gray-400 dark:text-slate-500 text-xs">
-                      {d.due_date ? new Date(d.due_date).toLocaleDateString(i18n.language) : '—'}
-                    </td>
-                    <td className="py-3 px-6">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => setModal({ debt: d })}
-                          className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
-                          <Pencil size={13} />
-                        </button>
-                        <button onClick={() => setDeleting(d)}
-                          className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
-                          <Trash2 size={13} />
-                        </button>
-                        {Number(d.reste) > 0 && (
-                          <button onClick={() => setRemb(d)}
-                            className="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-400 hover:text-green-600 transition-colors" title={t('common.rembourser')}>
-                            <MoreVertical size={13} />
-                          </button>
-                        )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="bg-gray-50 dark:bg-slate-800 p-2 rounded">
+                        <p className="text-gray-500 dark:text-slate-400 text-xs">{t('debts.total_prete')}</p>
+                        <p className="font-semibold dark:text-white">{Number(d.total_prete).toLocaleString()} MAD</p>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <div className="bg-gray-50 dark:bg-slate-800 p-2 rounded">
+                        <p className="text-gray-500 dark:text-slate-400 text-xs">{t('debts.total_rembourse')}</p>
+                        <p className="font-semibold text-green-600 dark:text-green-400">{Number(d.total_rembourse).toLocaleString()} MAD</p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-slate-800 p-2 rounded">
+                        <p className="text-gray-500 dark:text-slate-400 text-xs">{t('debts.reste')}</p>
+                        <p className="font-bold text-sakan-blue dark:text-sakan">{Number(d.reste).toLocaleString()} MAD</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <div>
+                        <span className="text-gray-500 dark:text-slate-400 mr-2">Priorité:</span>
+                        <StatutBadge color={(d.priority === 'important' || d.is_required) ? 'red' : 'gray'}>
+                          {(d.priority || (d.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
+                        </StatutBadge>
+                      </div>
+                      <span className="text-gray-400 dark:text-slate-500">
+                        {d.due_date ? new Date(d.due_date).toLocaleDateString(i18n.language) : '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 pt-2 border-t border-gray-100 dark:border-slate-800">
+                      <button onClick={() => setModal({ debt: d })}
+                        className="flex-1 p-2 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors flex items-center justify-center gap-1">
+                        <Pencil size={13} /> <span className="text-xs">{t('common.edit')}</span>
+                      </button>
+                      
+                      <button onClick={() => setDeleting(d)}
+                        className="flex-1 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center gap-1">
+                        <Trash2 size={13} /> <span className="text-xs">{t('common.delete')}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
