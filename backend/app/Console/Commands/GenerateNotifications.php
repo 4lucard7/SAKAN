@@ -129,7 +129,7 @@ class GenerateNotifications extends Command
                 foreach ($voiture->maintenances as $m) {
                     // Alerte par date — J-14
                     if ($m->duration && $m->last_change_date) {
-                        $prochaineDate = Carbon::parse($m->last_change_date)->addMonths($m->duration);
+                        $prochaineDate = Carbon::parse($m->last_change_date)->addMonths((int) $m->duration);
                         $joursRestants = $today->diffInDays($prochaineDate, false);
 
                         if ($joursRestants === 14) {

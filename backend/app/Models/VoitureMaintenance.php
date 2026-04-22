@@ -27,11 +27,10 @@ class VoitureMaintenance extends Model
         return $this->belongsTo(Voiture::class, 'car_id');
     }
 
-    // Date prévisionnelle prochaine intervention
     public function getProchaineDateAttribute(): ?Carbon
     {
         return $this->duration
-            ? $this->last_change_date->addMonths($this->duration)
+            ? $this->last_change_date->copy()->addMonths((int) $this->duration)
             : null;
     }
 

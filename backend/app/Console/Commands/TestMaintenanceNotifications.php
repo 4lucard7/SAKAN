@@ -69,7 +69,7 @@ class TestMaintenanceNotifications extends Command
         }
 
         $prochaineKm = $maintenance->kilometrage_actuel + $maintenance->limit_km;
-        $prochaineDate = Carbon::parse($maintenance->last_change_date)->addMonths($maintenance->duration);
+        $prochaineDate = Carbon::parse($maintenance->last_change_date)->addMonths((int) $maintenance->duration);
         $kmRestants = $prochaineKm - $car->current_km;
         $daysRestants = $today->diffInDays($prochaineDate, false);
 
