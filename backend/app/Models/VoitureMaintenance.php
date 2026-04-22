@@ -47,7 +47,7 @@ class VoitureMaintenance extends Model
         $now = Carbon::now();
         $nextDate = $this->prochaine_date;
         $nextKm = $this->prochaine_km;
-        $currentKm = $this->kilometrage_actuel;
+        $currentKm = $this->voiture->current_km;
 
         if ($nextKm && $currentKm >= $nextKm) {
             return 'depasse';

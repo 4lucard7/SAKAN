@@ -32,9 +32,9 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-        // Tous les jours à 08:00 — vérification des alertes et notifications
+        // Toutes les minutes — vérification des alertes et notifications
         $schedule->command('notifications:generate')
-            ->dailyAt('08:00')
+            ->everyMinute()
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/scheduler.log'));
     }

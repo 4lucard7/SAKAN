@@ -28,7 +28,7 @@ class GenerateNotifications extends Command
             $count = 0;
 
             // ────────────────────────────────────────────────────────
-            // 1. DETTES — alerte J-7 avant due_date
+            // 1. DETTES — alerte J-7 avant due_date ou en retard
             // ────────────────────────────────────────────────────────
             $dettes = $user->debts()
                 ->whereNotNull('due_date')
@@ -38,42 +38,46 @@ class GenerateNotifications extends Command
             foreach ($dettes as $dette) {
                 $joursRestants = $today->diffInDays(Carbon::parse($dette->due_date), false);
 
-                if ($joursRestants !== 7) continue; // exactement J-7
+                // Si <= 7 jours (incluant les jours négatifs = en retard)
+                if ($joursRestants <= 7) {
+                    $statusType = $joursRestants < 0 ? 'debt_overdue' : 'debt_upcoming';
+                    if ($this->notifExiste($user->id, 'finances', $dette->id, $statusType, $today, false)) continue;
 
-                if ($this->notifExiste($user->id, 'finances', $dette->id, 'debt', $today)) continue;
+                    $label = $dette->type === 'outflow' ? 'dette envers' : 'créance de';
+                    $msg = $joursRestants < 0 
+                        ? "Alerte : votre {$label} {$dette->tier->name} de {$dette->reste} MAD est EN RETARD depuis le {$dette->due_date->format('d/m/Y')}."
+                        : "Rappel : votre {$label} {$dette->tier->name} de {$dette->reste} MAD arrive à échéance le {$dette->due_date->format('d/m/Y')}.";
 
-                $label = $dette->type === 'outflow' ? 'dette envers' : 'créance de';
-                Notification::create([
-                    'user_id'        => $user->id,
-                    'type'           => 'finances',
-                    'message'        => "Rappel : votre {$label} {$dette->tier->name} de {$dette->reste} MAD arrive à échéance dans 7 jours ({$dette->due_date->format('d/m/Y')}).",
-                    'is_read'        => false,
-                    'is_required'    => $dette->is_required ?? false,
-                    'reference_type' => 'debt',
-                    'reference_id'   => $dette->id,
-                ]);
-                $count++;
+                    Notification::create([
+                        'user_id'        => $user->id,
+                        'type'           => 'finances',
+                        'message'        => $msg,
+                        'is_read'        => false,
+                        'is_required'    => $dette->is_required ?? false,
+                        'reference_type' => $statusType,
+                        'reference_id'   => $dette->id,
+                    ]);
+                    $count++;
+                }
             }
 
             // ────────────────────────────────────────────────────────
             // 2. CHARGES — passage en retard le lendemain du jour d'échéance
             // ────────────────────────────────────────────────────────
             $charges = $user->charges()
-                ->where('mois', $now->month)
-                ->where('annee', $now->year)
-                ->where('statut', 'en_attente')
+                ->where('statut', '!=', 'payee')
                 ->get();
 
             foreach ($charges as $charge) {
-                // Jour d'échéance dépassé ?
-                $echeance = Carbon::create($now->year, $now->month, $charge->jour_echeance);
-                if ($today->lte($echeance)) continue;
+                $echeance = Carbon::create($charge->annee, $charge->mois, $charge->jour_echeance);
+                if ($today->lte($echeance)) continue; // Pas encore en retard
 
-                // Met à jour le statut en base
-                $charge->statut = 'en_retard';
-                $charge->save();
+                if ($charge->statut !== 'en_retard') {
+                    $charge->statut = 'en_retard';
+                    $charge->save();
+                }
 
-                if ($this->notifExiste($user->id, 'charges', $charge->id, 'charge', $today)) continue;
+                if ($this->notifExiste($user->id, 'charges', $charge->id, 'charge_overdue', $today, false)) continue;
 
                 Notification::create([
                     'user_id'        => $user->id,
@@ -81,14 +85,14 @@ class GenerateNotifications extends Command
                     'message'        => "La charge \"{$charge->libelle}\" ({$charge->montant} MAD) est en retard depuis le {$echeance->format('d/m/Y')}.",
                     'is_read'        => false,
                     'is_required'    => $charge->is_required ?? false,
-                    'reference_type' => 'charge',
+                    'reference_type' => 'charge_overdue',
                     'reference_id'   => $charge->id,
                 ]);
                 $count++;
             }
 
             // ────────────────────────────────────────────────────────
-            // 3. VÉHICULE — responsabilités (J-30 et J-7)
+            // 3. VÉHICULE — responsabilités (J-30, J-7 ou dépassé)
             // ────────────────────────────────────────────────────────
             $voiture = $user->voiture;
 
@@ -106,41 +110,54 @@ class GenerateNotifications extends Command
                     $expiryDate    = Carbon::parse($expiry);
                     $joursRestants = $today->diffInDays($expiryDate, false);
 
-                    if (!in_array($joursRestants, [30, 7])) continue;
+                    if ($joursRestants <= 30) {
+                        $statusType = $joursRestants < 0 ? 'overdue' : ($joursRestants <= 7 ? '7j' : '30j');
+                        $key = "responsabilite_{$label}_{$statusType}_{$expiryDate->format('Y')}";
+                        
+                        if ($this->notifExisteParMessage($user->id, $key, $today, false)) continue;
 
-                    $key = "responsabilite_{$label}_{$joursRestants}j";
-                    if ($this->notifExisteParMessage($user->id, $key, $today)) continue;
+                        $msg = $joursRestants < 0
+                            ? "Alerte : Votre {$label} a EXPIRÉ le {$expiryDate->format('d/m/Y')} !"
+                            : "Votre {$label} expire le {$expiryDate->format('d/m/Y')}. Pensez à le renouveler.";
 
-                    Notification::create([
-                        'user_id'        => $user->id,
-                        'type'           => 'responsabilite',
-                        'message'        => "Votre {$label} expire dans {$joursRestants} jours ({$expiryDate->format('d/m/Y')}). Pensez à le renouveler.",
-                        'is_read'        => false,
-                        'is_required'    => false,
-                        'reference_type' => 'voiture',
-                        'reference_id'   => $voiture->id,
-                    ]);
-                    $count++;
+                        Notification::create([
+                            'user_id'        => $user->id,
+                            'type'           => 'responsabilite',
+                            // On ajoute la clé invisible dans le message pour éviter les doublons par notifExisteParMessage
+                            'message'        => $msg . " <!-- {$key} -->",
+                            'is_read'        => false,
+                            'is_required'    => $joursRestants <= 7,
+                            'reference_type' => 'voiture',
+                            'reference_id'   => $voiture->id,
+                        ]);
+                        $count++;
+                    }
                 }
 
                 // ────────────────────────────────────────────────────
-                // 4. MAINTENANCES — J-14 date OU 500 km du seuil
+                // 4. MAINTENANCES — J-14 date OU <= 500 km du seuil
                 // ────────────────────────────────────────────────────
                 foreach ($voiture->maintenances as $m) {
-                    // Alerte par date — J-14
+                    // Alerte par date — <= 14 jours
                     if ($m->duration && $m->last_change_date) {
                         $prochaineDate = Carbon::parse($m->last_change_date)->addMonths((int) $m->duration);
                         $joursRestants = $today->diffInDays($prochaineDate, false);
 
-                        if ($joursRestants === 14) {
-                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_date', $today, true)) {
+                        if ($joursRestants <= 14) {
+                            $statusType = $joursRestants < 0 ? 'maintenance_date_overdue' : 'maintenance_date_upcoming';
+                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, $statusType, $today, false)) {
+                                
+                                $msg = $joursRestants < 0
+                                    ? "Alerte : L'entretien \"{$m->part_name}\" est en RETARD (prévu le {$prochaineDate->format('d/m/Y')})."
+                                    : "Entretien \"{$m->part_name}\" prévu le {$prochaineDate->format('d/m/Y')}. Pensez à planifier l'intervention.";
+
                                 Notification::create([
                                     'user_id'        => $user->id,
                                     'type'           => 'maintenance',
-                                    'message'        => "Entretien \"{$m->part_name}\" prévu dans 14 jours ({$prochaineDate->format('d/m/Y')}). Pensez à planifier l'intervention.",
+                                    'message'        => $msg,
                                     'is_read'        => false,
                                     'is_required'    => $m->is_required ?? false,
-                                    'reference_type' => 'maintenance',
+                                    'reference_type' => $statusType,
                                     'reference_id'   => $m->id,
                                 ]);
                                 $count++;
@@ -148,20 +165,26 @@ class GenerateNotifications extends Command
                         }
                     }
 
-                    // Alerte par kilométrage — à 500 km du seuil
+                    // Alerte par kilométrage — <= 500 km restants
                     if ($m->limit_km && $m->kilometrage_actuel) {
                         $prochaineKm   = $m->kilometrage_actuel + $m->limit_km;
                         $kmRestants    = $prochaineKm - $voiture->current_km;
 
-                        if ($kmRestants > 0 && $kmRestants <= 500) {
-                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, 'maintenance_km', $today, false)) {
+                        if ($kmRestants <= 500) {
+                            $statusType = $kmRestants < 0 ? 'maintenance_km_overdue' : 'maintenance_km_upcoming';
+                            if (!$this->notifExiste($user->id, 'maintenance', $m->id, $statusType, $today, false)) {
+                                
+                                $msg = $kmRestants < 0
+                                    ? "Alerte : L'entretien \"{$m->part_name}\" est DÉPASSÉ de " . abs($kmRestants) . " km ! (seuil : {$prochaineKm} km)."
+                                    : "Entretien \"{$m->part_name}\" dans {$kmRestants} km (seuil : {$prochaineKm} km).";
+
                                 Notification::create([
                                     'user_id'        => $user->id,
                                     'type'           => 'maintenance',
-                                    'message'        => "Entretien \"{$m->part_name}\" dans {$kmRestants} km (seuil : {$prochaineKm} km). Votre kilométrage actuel : {$voiture->current_km} km.",
+                                    'message'        => $msg,
                                     'is_read'        => false,
                                     'is_required'    => $m->is_required ?? false,
-                                    'reference_type' => 'maintenance',
+                                    'reference_type' => $statusType,
                                     'reference_id'   => $m->id,
                                 ]);
                                 $count++;
