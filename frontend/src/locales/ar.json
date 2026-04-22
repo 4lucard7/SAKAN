@@ -123,7 +123,10 @@
     "vehicle_registered": "السيارة مسجلة",
     "no_vehicle": "لا توجد سيارة",
     "payment_rate": "معدل الدفع",
-    "no_tiers": "لا توجد أطراف"
+    "no_tiers": "لا توجد أطراف",
+    "all_vehicles": "جميع السيارات",
+    "no_alerts_for_car": "لا توجد تنبيهات لهذه السيارة",
+    "filter_by_car": "تصفية حسب السيارة"
   },
   "status": {
     "paid": "تم الدفع",

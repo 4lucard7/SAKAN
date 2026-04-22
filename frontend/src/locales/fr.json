@@ -138,7 +138,10 @@
     "vehicle_registered": "Véhicule enregistré",
     "no_vehicle": "Aucun véhicule",
     "payment_rate": "Taux de paiement",
-    "no_tiers": "Aucun tiers"
+    "no_tiers": "Aucun tiers",
+    "all_vehicles": "Toutes les voitures",
+    "no_alerts_for_car": "Aucune alerte pour ce véhicule",
+    "filter_by_car": "Filtrer par véhicule"
   },
   "status": {
     "paid": "PAYÉ",
