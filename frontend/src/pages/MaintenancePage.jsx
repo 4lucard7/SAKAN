@@ -12,10 +12,14 @@ function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
   ]
   const [form, setForm] = useState({
     car_id: initial?.car_id || voitures[0]?.id || '',
-    part_name: '', kilometrage_actuel: '', limit_km: '',
-    last_change_date: '', duration: '', cost: '', notes: '',
-    priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal'),
-    ...initial
+    part_name: initial?.part_name || '',
+    kilometrage_actuel: initial?.kilometrage_actuel || '',
+    limit_km: initial?.limit_km || '',
+    last_change_date: initial?.last_change_date || '',
+    duration: initial?.duration || '',
+    cost: initial?.cost || '',
+    notes: initial?.notes || '',
+    priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal')
   })
 
   useEffect(() => {
@@ -225,66 +229,126 @@ export default function MaintenancePage() {
         </div>
       )}
 
-      {/* Table */}
+      {/* Table Header */}
       <div className="card p-0 overflow-hidden dark:bg-slate-900 dark:border-white/10 transition-colors">
         <div className="px-6 py-4 border-b border-gray-100 dark:border-slate-800 flex items-center gap-2">
           <Wrench size={15} className="text-gray-400 dark:text-slate-500" />
           <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('maintenance.history')}</h2>
         </div>
+
         {maintenances.length === 0 ? (
           <EmptyState icon="🔧" title={t('common.no_data')} description={t('maintenance.desc_no_maintenance')} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
-                  <th className="py-3 px-6 text-left font-medium">{t('maintenance.part_name')}</th>
-                  <th className="py-3 px-4 text-left font-medium">{t('vehicle.current_km')}</th>
-                  <th className="py-3 px-4 text-left font-medium">Priorité</th>
-                  <th className="py-3 px-4 text-left font-medium">{t('maintenance.next_km').split(' ')[2]}</th>
-                  <th className="py-3 px-4 text-left font-medium">{t('maintenance.last_done').split(' ')[0]}</th>
-                  <th className="py-3 px-4 text-left font-medium">{t('maintenance.duration_months').split(' ')[0]}</th>
-                  <th className="py-3 px-4 text-left font-medium">{t('vehicle.alerts')}</th>
-                  <th className="py-3 px-6 text-left font-medium">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {maintenances.map(m => (
-                  <tr key={m.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-6 font-medium text-gray-800 dark:text-slate-200">{m.part_name}</td>
-                    <td className="py-3 px-4 dark:text-slate-400">{formatKm(m.kilometrage_actuel)} km</td>
-                    <td className="py-3 px-4">
-                      <StatutBadge color={(m.priority === 'important' || m.is_required) ? 'red' : 'gray'}>
-                        {(m.priority || (m.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
-                      </StatutBadge>
-                    </td>
-                    <td className={`py-3 px-4 ${m.statut_alerte === 'alerte_km' || m.statut_alerte === 'depasse' ? 'text-orange-500 font-semibold dark:text-orange-400' : 'text-gray-400 dark:text-slate-600'}`}>
-                      {m.limit_km ? `${formatKm(m.limit_km)} km` : '—'}
-                    </td>
-                    <td className="py-3 px-4 dark:text-slate-400">{new Date(m.last_change_date).toLocaleDateString(i18n.language)}</td>
-                    <td className="py-3 px-4 text-gray-500 dark:text-slate-500">
-                      {m.duration ? `${m.duration} ${t('maintenance.duration_months').split(' ')[1]}` : '—'}
-                    </td>
-                    <td className="py-3 px-4">
-                      <AlerteBadge statut={m.statut_alerte} />
-                    </td>
-                    <td className="py-3 px-6">
-                      <div className="flex items-center gap-1">
-                        <button onClick={() => setModal({ m })}
-                          className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
-                          <Pencil size={13} />
-                        </button>
-                        <button onClick={() => setDeleting(m)}
-                          className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
+                    <th className="py-3 px-6 text-left font-medium">{t('maintenance.part_name')}</th>
+                    <th className="py-3 px-4 text-left font-medium">{t('vehicle.current_km')}</th>
+                    <th className="py-3 px-4 text-left font-medium">Priorité</th>
+                    <th className="py-3 px-4 text-left font-medium">{t('maintenance.next_km').split(' ')[2]}</th>
+                    <th className="py-3 px-4 text-left font-medium">{t('maintenance.last_done').split(' ')[0]}</th>
+                    <th className="py-3 px-4 text-left font-medium">{t('maintenance.duration_months').split(' ')[0]}</th>
+                    <th className="py-3 px-4 text-left font-medium">{t('vehicle.alerts')}</th>
+                    <th className="py-3 px-6 text-left font-medium">{t('common.actions')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {maintenances.map(m => (
+                    <tr key={m.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 px-6 font-medium text-gray-800 dark:text-slate-200">{m.part_name}</td>
+                      <td className="py-3 px-4 dark:text-slate-400">{formatKm(m.kilometrage_actuel)} km</td>
+                      <td className="py-3 px-4">
+                        <StatutBadge color={(m.priority === 'important' || m.is_required) ? 'red' : 'gray'}>
+                          {(m.priority || (m.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
+                        </StatutBadge>
+                      </td>
+                      <td className={`py-3 px-4 ${m.statut_alerte === 'alerte_km' || m.statut_alerte === 'depasse' ? 'text-orange-500 font-semibold dark:text-orange-400' : 'text-gray-400 dark:text-slate-600'}`}>
+                        {m.limit_km ? `${formatKm(m.limit_km)} km` : '—'}
+                      </td>
+                      <td className="py-3 px-4 dark:text-slate-400">{new Date(m.last_change_date).toLocaleDateString(i18n.language)}</td>
+                      <td className="py-3 px-4 text-gray-500 dark:text-slate-500">
+                        {m.duration ? `${m.duration} ${t('maintenance.duration_months').split(' ')[1]}` : '—'}
+                      </td>
+                      <td className="py-3 px-4">
+                        <AlerteBadge statut={m.statut_alerte} />
+                      </td>
+                      <td className="py-3 px-6">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setModal({ m })}
+                            className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                            <Pencil size={13} />
+                          </button>
+                          <button onClick={() => setDeleting(m)}
+                            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y divide-gray-100 dark:divide-slate-800">
+              {maintenances.map(m => (
+                <div key={m.id} className="p-4 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                  {/* Part name header with priority and alert */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-800 dark:text-slate-200 mb-1">{m.part_name}</h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <StatutBadge color={(m.priority === 'important' || m.is_required) ? 'red' : 'gray'} className="text-xs">
+                          {(m.priority || (m.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
+                        </StatutBadge>
+                        <div className="text-xs">
+                          <AlerteBadge statut={m.statut_alerte} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 ml-2">
+                      <button onClick={() => setModal({ m })}
+                        className="p-2 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                        <Pencil size={16} />
+                      </button>
+                      <button onClick={() => setDeleting(m)}
+                        className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Info grid */}
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">{t('vehicle.current_km')}</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">{formatKm(m.kilometrage_actuel)} km</p>
+                    </div>
+                    <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">{t('maintenance.next_km').split(' ')[2]}</p>
+                      <p className={`font-semibold ${m.statut_alerte === 'alerte_km' || m.statut_alerte === 'depasse' ? 'text-orange-500 dark:text-orange-400' : 'text-gray-800 dark:text-slate-200'}`}>
+                        {m.limit_km ? `${formatKm(m.limit_km)} km` : '—'}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">{t('maintenance.last_done').split(' ')[0]}</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">{new Date(m.last_change_date).toLocaleDateString(i18n.language)}</p>
+                    </div>
+                    <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                      <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">{t('maintenance.duration_months').split(' ')[0]}</p>
+                      <p className="font-semibold text-gray-800 dark:text-slate-200">
+                        {m.duration ? `${m.duration} ${t('maintenance.duration_months').split(' ')[1]}` : '—'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
