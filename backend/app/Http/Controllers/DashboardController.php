@@ -43,17 +43,18 @@ class DashboardController extends Controller
         $chargesRestant  = $chargesMois->whereIn('statut', ['en_attente', 'en_retard'])->sum('montant');
         $chargesEnRetard = $chargesMois->where('statut', 'en_retard')->count();
 
-        // ── Véhicule ─────────────────────────────────────────────────
+        // ── Véhicules (toutes les voitures) ─────────────────────────
         $voitureAlertes = [];
-        $voiture        = $user->voiture;
+        $allVoitures    = $user->voitures()->with('maintenances')->get();
 
-        if ($voiture) {
+        foreach ($allVoitures as $voiture) {
             // Alertes responsabilités
             $responsabilites = $voiture->responsabilites ?? [];
             foreach ($responsabilites as $doc => $info) {
                 if (in_array($info['statut'], ['alerte_j7', 'alerte_j30', 'expire'])) {
                     $voitureAlertes[] = [
                         'type'           => 'responsabilite',
+                        'voiture_id'     => $voiture->id,
                         'car_name'       => $voiture->car_name,
                         'document'       => $doc,
                         'statut'         => $info['statut'],
@@ -66,11 +67,12 @@ class DashboardController extends Controller
             foreach ($voiture->maintenances as $m) {
                 if (in_array($m->statut_alerte, ['alerte_km', 'alerte_date', 'depasse'])) {
                     $voitureAlertes[] = [
-                        'type'         => 'maintenance',
-                        'car_name'     => $voiture->car_name,
-                        'part_name'    => $m->part_name,
-                        'statut'       => $m->statut_alerte,
-                        'prochaine_km' => $m->prochain_km,
+                        'type'           => 'maintenance',
+                        'voiture_id'     => $voiture->id,
+                        'car_name'       => $voiture->car_name,
+                        'part_name'      => $m->part_name,
+                        'statut'         => $m->statut_alerte,
+                        'prochaine_km'   => $m->prochain_km,
                         'prochaine_date' => $m->prochaine_date,
                     ];
                 }
@@ -100,7 +102,7 @@ class DashboardController extends Controller
                     : 0,
             ],
             'voiture' => [
-                'enregistree' => (bool) $voiture,
+                'enregistree' => $allVoitures->isNotEmpty(),
                 'alertes'     => $voitureAlertes,
                 'nb_alertes'  => count($voitureAlertes),
             ],
