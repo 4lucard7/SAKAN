@@ -61,7 +61,7 @@ class TierController extends Controller
 
         $validated = $request->validate([
             'name'    => 'sometimes|string|max:100',
-            'type'    => 'sometimes|in:ami,famille,collègue,autre',
+            'type'    => 'sometimes|string',
             'contact' => 'nullable|string|max:150',
         ]);
 

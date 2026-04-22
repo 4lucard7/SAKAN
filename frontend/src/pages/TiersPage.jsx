@@ -115,33 +115,68 @@ export default function TiersPage() {
         ) : filtered.length === 0 ? (
           <EmptyState icon={<Users size={48} />} title={t('tiers.no_tiers')} description={t('tiers.desc_no_tiers')} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-slate-800 text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide bg-gray-50/50 dark:bg-slate-800/20">
-                  <th className="py-3 px-6 text-left font-medium">{t('common.name')}</th>
-                  <th className="py-3 px-4 text-left font-medium">{t('common.type')}</th>
-                  <th className="py-3 px-4 text-left font-medium">{t('common.contact')}</th>
-                  <th className="py-3 px-6 text-right font-medium">{t('common.actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map(t_item => (
-                  <tr key={t_item.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-3 px-6">
-                      <div className="flex items-center gap-3">
-                        <Avatar name={t_item.name} size="sm" />
-                        <span className="font-medium text-gray-800 dark:text-slate-200">{t_item.name}</span>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 dark:border-slate-800 text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide bg-gray-50/50 dark:bg-slate-800/20">
+                    <th className="py-3 px-6 text-left font-medium">{t('common.name')}</th>
+                    <th className="py-3 px-4 text-left font-medium">{t('common.type')}</th>
+                    <th className="py-3 px-4 text-left font-medium">{t('common.contact')}</th>
+                    <th className="py-3 px-6 text-right font-medium">{t('common.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(t_item => (
+                    <tr key={t_item.id} className="border-b border-gray-50 dark:border-slate-800 last:border-0 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="py-3 px-6">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={t_item.name} size="sm" />
+                          <span className="font-medium text-gray-800 dark:text-slate-200">{t_item.name}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                          {t_item.type.charAt(0).toUpperCase() + t_item.type.slice(1)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-gray-400 dark:text-slate-500">{t_item.contact || '—'}</td>
+                      <td className="py-3 px-6 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button onClick={() => setModal({ tier: t_item })}
+                            className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                            <Pencil size={14} />
+                          </button>
+                          <button onClick={() => setDeleting(t_item)}
+                            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden p-4 space-y-3">
+              {filtered.map(t_item => (
+                <div key={t_item.id} className="border border-gray-100 dark:border-slate-800 rounded-lg p-4 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={t_item.name} size="sm" />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800 dark:text-slate-200">{t_item.name}</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500">{t_item.contact || '—'}</p>
                       </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 text-xs">
                         {t_item.type.charAt(0).toUpperCase() + t_item.type.slice(1)}
                       </span>
-                    </td>
-                    <td className="py-3 px-4 text-gray-400 dark:text-slate-500">{t_item.contact || '—'}</td>
-                    <td className="py-3 px-6 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center gap-1">
                         <button onClick={() => setModal({ tier: t_item })}
                           className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
                           <Pencil size={14} />
@@ -151,12 +186,12 @@ export default function TiersPage() {
                           <Trash2 size={14} />
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
       <div className="mt-5">
