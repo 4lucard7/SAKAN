@@ -125,7 +125,8 @@ function MonthSection({ mois, annee, charges, onEdit, onDelete }) {
 
       {open && (
         <div className="border-t border-gray-100 dark:border-slate-800">
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
@@ -186,6 +187,72 @@ function MonthSection({ mois, annee, charges, onEdit, onDelete }) {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden divide-y divide-gray-100 dark:divide-slate-800">
+            {charges.map(c => (
+              <div key={c.id} className="p-4 hover:bg-primary-50/40 dark:hover:bg-slate-800/40 transition-colors">
+                {/* Header with label and actions */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-gray-800 dark:text-slate-200">{c.libelle}</h3>
+                      {c.is_required && (
+                        <span className="badge bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 text-xs">Important</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      {c.categorie && (
+                        <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">
+                          {c.categorie}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2">
+                    <button onClick={() => onEdit(c)}
+                      className="p-2 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                      <Pencil size={16} />
+                    </button>
+                    <button onClick={() => onDelete(c)}
+                      className="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Info grid */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">{t('common.amount')}</p>
+                    <p className="font-semibold text-gray-800 dark:text-slate-200">{Number(c.montant).toLocaleString()} MAD</p>
+                  </div>
+                  <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">{t('charges.due_day')}</p>
+                    <p className="font-semibold text-gray-800 dark:text-slate-200">
+                      {new Date(c.annee, c.mois - 1, c.jour_echeance).toLocaleDateString(i18n.language)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">{t('common.status')}</p>
+                    <div>
+                      <StatutBadge color={statusColor(c.statut)} className="inline-flex">
+                        {c.statut === 'payee' ? t('status.payee') : c.statut === 'en_retard' ? t('status.en_retard') : t('status.en_attente')}
+                      </StatutBadge>
+                    </div>
+                  </div>
+                  <div className="bg-gray-50/50 dark:bg-slate-800/30 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-slate-500 mb-1">Priorité</p>
+                    <div>
+                      <StatutBadge color={c.is_required ? 'red' : 'blue'} className="inline-flex">
+                        {c.is_required ? 'Important' : 'Normal'}
+                      </StatutBadge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
