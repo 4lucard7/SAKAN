@@ -159,5 +159,14 @@
     "category": "Catégorie",
     "due_day": "Jour d'échéance",
     "placeholder_libelle": "Loyer, Internet, École..."
+  },
+  "alert_status": {
+    "alerte_km": "Entretien recommandé (Km)",
+    "alerte_date": "Entretien recommandé (Date)",
+    "depasse": "Échéance dépassée",
+    "alerte_j7": "Expire dans < 7 jours",
+    "alerte_j30": "Expire dans < 30 jours",
+    "expire": "Document expiré",
+    "ok": "En règle"
   }
 }

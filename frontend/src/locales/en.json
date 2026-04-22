@@ -144,5 +144,14 @@
     "category": "Category",
     "due_day": "Due day",
     "placeholder_libelle": "Rent, Internet, School..."
+  },
+  "alert_status": {
+    "alerte_km": "Maintenance due soon (Km)",
+    "alerte_date": "Maintenance due soon (Date)",
+    "depasse": "Overdue",
+    "alerte_j7": "Expires in < 7 days",
+    "alerte_j30": "Expires in < 30 days",
+    "expire": "Expired",
+    "ok": "In good standing"
   }
 }

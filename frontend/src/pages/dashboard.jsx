@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dashboardAPI, tiersAPI, voituresAPI } from '../services/api'
 import { Spinner, Badge } from '../components/Ui'
-import { Car, AlertTriangle, ChevronRight } from 'lucide-react'
+import { Car, AlertTriangle, ChevronRight, Wrench, Shield } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 const COLORS = ['#25D1F4', '#00b4d8', '#0096c7', '#0077b6', '#023e8a', '#90e0ef']
@@ -207,22 +207,67 @@ export default function Dashboard() {
 
       {/* Vehicle alerts */}
       {voiture.alertes?.length > 0 && (
-        <div className="card border border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10 shadow-inner">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle size={16} className="text-orange-500" />
-            <h2 className="font-display font-semibold text-orange-700 dark:text-orange-400">{t('dashboard.vehicle_alerts')}</h2>
-          </div>
-          <div className="flex flex-col gap-2">
-            {voiture.alertes.map((a, i) => (
-              <div key={i} className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-xl p-3 border border-orange-100 dark:border-slate-700 shadow-sm">
-                <Car size={14} className="text-orange-400 flex-shrink-0" />
-                <span className="text-sm text-gray-700 dark:text-slate-300">
-                  <span className="font-medium">{a.car_name}:</span> {a.type === 'maintenance'
-                    ? `${a.part_name} — ${a.statut}`
-                    : `${a.document} — ${a.statut}${a.jours_restants != null ? ` (J-${a.jours_restants})` : ''}`}
+        <div className="card dark:bg-slate-900 dark:border-white/10 transition-colors">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center relative">
+                <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
                 </span>
+                <AlertTriangle size={20} className="text-orange-500" />
               </div>
-            ))}
+              <div>
+                <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('dashboard.vehicle_alerts')}</h2>
+                <p className="text-xs text-gray-400 dark:text-slate-500">{voiture.alertes.length} alert(s)</p>
+              </div>
+            </div>
+            <button onClick={() => navigate('/voiture')}
+              className="text-xs text-sakan-blue dark:text-sakan font-medium hover:underline flex items-center gap-1 bg-primary-50 dark:bg-primary-900/20 px-3 py-1.5 rounded-lg transition-colors">
+              {t('common.actions')} <ChevronRight size={12} />
+            </button>
+          </div>
+          <div className="flex flex-col gap-3">
+            {voiture.alertes.map((a, i) => {
+              const isRed = ['depasse', 'expire', 'alerte_j7'].includes(a.statut)
+              const bgColor = isRed 
+                ? 'bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/30' 
+                : 'bg-orange-50/30 dark:bg-orange-900/10 border-orange-100 dark:border-orange-900/30'
+              const iconBoxColor = isRed ? 'bg-white dark:bg-red-900/40 text-red-600 dark:text-red-400 shadow-sm' : 'bg-white dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 shadow-sm'
+              const badgeColor = isRed ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400'
+              
+              const title = a.type === 'maintenance' ? a.part_name : t(`vehicle.doc_${a.document}`)
+              const desc = t(`alert_status.${a.statut}`) + (a.jours_restants != null ? ` (J-${a.jours_restants})` : '')
+
+              return (
+                <div key={i} className={`group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl p-4 border transition-all hover:shadow-md hover:-translate-y-0.5 ${bgColor}`}>
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${iconBoxColor}`}>
+                      {a.type === 'maintenance' ? <Wrench size={22} /> : <Shield size={22} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        {a.car_name}
+                        {isRed && (
+                           <span className="relative flex h-2 w-2" title="Urgent">
+                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                             <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                           </span>
+                        )}
+                      </p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-slate-400 mt-0.5">
+                        {title}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center self-start sm:self-auto ml-16 sm:ml-0">
+                    <span className={`text-xs font-bold px-3 py-1.5 rounded-lg border border-transparent dark:border-white/5 shadow-sm ${badgeColor}`}>
+                      {desc}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

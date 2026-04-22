@@ -104,7 +104,7 @@ function DocBadge({ label, expiry, statut }) {
         <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{label}</p>
         <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{new Date(expiry).toLocaleDateString(i18n.language)}</p>
       </div>
-      <span className={`badge ${color}`}>{statut || 'OK'}</span>
+      <span className={`badge ${color}`}>{statut ? t(`alert_status.${statut}`) : t('alert_status.ok')}</span>
     </div>
   )
 }
