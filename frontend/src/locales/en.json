@@ -123,7 +123,10 @@
     "vehicle_registered": "Vehicle registered",
     "no_vehicle": "No vehicle",
     "payment_rate": "Payment rate",
-    "no_tiers": "No tiers"
+    "no_tiers": "No tiers",
+    "all_vehicles": "All vehicles",
+    "no_alerts_for_car": "No alerts for this vehicle",
+    "filter_by_car": "Filter by vehicle"
   },
   "status": {
     "paid": "PAID",
