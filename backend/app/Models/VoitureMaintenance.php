@@ -44,7 +44,7 @@ class VoitureMaintenance extends Model
 
     public function getStatutAlerteAttribute(): string
     {
-        $now = Carbon::now();
+        $now = Carbon::now('UTC');
         $nextDate = $this->prochaine_date;
         $nextKm = $this->prochaine_km;
         $currentKm = $this->voiture->current_km;

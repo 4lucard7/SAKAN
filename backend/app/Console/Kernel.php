@@ -19,10 +19,15 @@ class Kernel extends ConsoleKernel
     /**
      * Planification des tâches automatiques.
      *
-     * Pour activer le scheduler en production, ajouter au cron du serveur :
-     *   * * * * * cd /path/to/sakan && php artisan schedule:run >> /dev/null 2>&1
-     *
-     * En développement, lancer : php artisan schedule:work
+     * IMPORTANT : Pour le "Silent Backend" en production, deux processus sont REQUIS :
+     * 1. Le Scheduler (Cron Job) :
+     *    * * * * * cd /path/to/sakan/backend && php artisan schedule:run >> /dev/null 2>&1
+     * 2. Le Queue Worker (Supervisor) - Obligatoire pour WebSockets/Reverb :
+     *    php artisan queue:work --queue=default --sleep=3 --tries=3
+     * 
+     * En développement local, lancez ces deux commandes dans des terminaux séparés :
+     * - php artisan schedule:work
+     * - php artisan queue:work
      */
     protected function schedule(Schedule $schedule): void
     {

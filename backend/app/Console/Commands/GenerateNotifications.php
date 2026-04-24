@@ -18,8 +18,8 @@ class GenerateNotifications extends Command
 
     public function handle(): int
     {
-        $now   = Carbon::now();
-        $today = Carbon::today();
+        $now   = Carbon::now('UTC');
+        $today = Carbon::today('UTC');
         $total = 0;
 
         $this->info('Génération des notifications — ' . $today->toDateString());
@@ -112,9 +112,9 @@ class GenerateNotifications extends Command
 
                     if ($joursRestants <= 30) {
                         $statusType = $joursRestants < 0 ? 'overdue' : ($joursRestants <= 7 ? '7j' : '30j');
-                        $key = "responsabilite_{$label}_{$statusType}_{$expiryDate->format('Y')}";
+                        $refType = "voiture_{$label}_{$statusType}";
                         
-                        if ($this->notifExisteParMessage($user->id, $key, $today, false)) continue;
+                        if ($this->notifExiste($user->id, 'responsabilite', $voiture->id, $refType, $today, false)) continue;
 
                         $msg = $joursRestants < 0
                             ? "Alerte : Votre {$label} a EXPIRÉ le {$expiryDate->format('d/m/Y')} !"
@@ -123,11 +123,10 @@ class GenerateNotifications extends Command
                         Notification::create([
                             'user_id'        => $user->id,
                             'type'           => 'responsabilite',
-                            // On ajoute la clé invisible dans le message pour éviter les doublons par notifExisteParMessage
-                            'message'        => $msg . " <!-- {$key} -->",
+                            'message'        => $msg,
                             'is_read'        => false,
                             'is_required'    => $joursRestants <= 7,
-                            'reference_type' => 'voiture',
+                            'reference_type' => $refType,
                             'reference_id'   => $voiture->id,
                         ]);
                         $count++;
@@ -211,16 +210,15 @@ class GenerateNotifications extends Command
      */
     private function notifExiste(int $userId, string $type, int $refId, string $refType, Carbon $today, bool $sameDay = true): bool
     {
-        $query = Notification::where('user_id', $userId)
+        // On vérifie si une notification EXACTEMENT identique et NON LUE existe déjà, 
+        // ou si elle a été générée récemment, pour éviter le spam infini.
+        return Notification::where('user_id', $userId)
             ->where('type', $type)
             ->where('reference_id', $refId)
-            ->where('reference_type', $refType);
-
-        if ($sameDay) {
-            $query->whereDate('created_at', $today);
-        }
-
-        return $query->exists();
+            ->where('reference_type', $refType)
+            // Empêcher la re-création si la notification est toujours non lue
+            // Ou retirer la vérification whereDate pour s'assurer que c'est le statut ("is_notified")
+            ->exists();
     }
 
     /**

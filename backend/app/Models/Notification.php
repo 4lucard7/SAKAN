@@ -11,6 +11,13 @@ class Notification extends Model
 {
     public $timestamps = false;
 
+    protected static function booted()
+    {
+        static::created(function ($notification) {
+            event(new \App\Events\NewNotificationEvent($notification));
+        });
+    }
+
     protected $fillable = [
         'user_id', 'type', 'message',
         'is_read', 'is_required', 'reference_type', 'reference_id', 'created_at'
