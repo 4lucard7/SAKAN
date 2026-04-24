@@ -20,7 +20,7 @@ class Notification extends Model
 
     protected $fillable = [
         'user_id', 'type', 'message',
-        'is_read', 'is_required', 'reference_type', 'reference_id', 'created_at'
+        'is_read', 'is_required', 'reference_type', 'reference_id', 'reminder_tier', 'created_at'
     ];
 
     protected $casts = [

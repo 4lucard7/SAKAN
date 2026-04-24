@@ -13,7 +13,6 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\GenerateMonthlyCharges::class,
         Commands\GenerateNotifications::class,
-        Commands\TestMaintenanceNotifications::class,
     ];
 
     /**
@@ -37,9 +36,9 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/scheduler.log'));
 
-        // Toutes les minutes — vérification des alertes et notifications
+        // Deux fois par jour (08h00 et 20h00) — vérification des échéances et alertes
         $schedule->command('notifications:generate')
-            ->everyMinute()
+            ->twiceDaily(8, 20)
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/scheduler.log'));
     }

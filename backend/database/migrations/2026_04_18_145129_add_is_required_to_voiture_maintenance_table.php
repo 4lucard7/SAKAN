@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('voiture_maintenance', function (Blueprint $table) {
-            $table->boolean('is_required')->default(false)->after('notes');
+            if (!Schema::hasColumn('voiture_maintenance', 'is_required')) {
+                $table->boolean('is_required')->default(false)->after('notes');
+            }
         });
     }
 
