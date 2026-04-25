@@ -25,6 +25,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
 
+// Setup Broadcast routes using Sanctum auth guard
+use Illuminate\Support\Facades\Broadcast;
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
+
 
 //  Routes protégées (Sanctum)
 Route::middleware('auth:sanctum')->group(function () {

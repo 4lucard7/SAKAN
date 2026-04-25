@@ -78,7 +78,7 @@ class GenerateNotifications extends Command
 
         foreach ($dettes as $dette) {
             $dueDate = Carbon::parse($dette->due_date)->startOfDay();
-            $joursRestants = $today->diffInDays($dueDate, false);
+            $joursRestants = (int) $today->diffInDays($dueDate, false);
 
             // Overdue
             if ($joursRestants < 0) {
@@ -136,7 +136,7 @@ class GenerateNotifications extends Command
             $day = min((int) $charge->jour_echeance, $maxDay);
             $echeance = Carbon::create($charge->annee, $charge->mois, $day)->startOfDay();
 
-            $joursRestants = $today->diffInDays($echeance, false);
+            $joursRestants = (int) $today->diffInDays($echeance, false);
 
             // Overdue — update status + notify
             if ($joursRestants < 0) {
@@ -208,7 +208,7 @@ class GenerateNotifications extends Command
             if (!$expiry) continue;
 
             $expiryDate    = Carbon::parse($expiry)->startOfDay();
-            $joursRestants = $today->diffInDays($expiryDate, false);
+            $joursRestants = (int) $today->diffInDays($expiryDate, false);
 
             // Overdue
             if ($joursRestants < 0) {
@@ -268,7 +268,7 @@ class GenerateNotifications extends Command
             // ── Date-based alerts ──
             if ($m->duration && $m->last_change_date) {
                 $prochaineDate = Carbon::parse($m->last_change_date)->addMonths((int) $m->duration)->startOfDay();
-                $joursRestants = $today->diffInDays($prochaineDate, false);
+                $joursRestants = (int) $today->diffInDays($prochaineDate, false);
 
                 // Overdue
                 if ($joursRestants < 0) {
