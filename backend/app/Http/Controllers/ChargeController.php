@@ -59,7 +59,7 @@ class ChargeController extends Controller
             'libelle'       => 'required|string|max:100',
             'categorie'     => 'nullable|string|max:50',
             'montant'       => 'required|numeric|min:0.01',
-            'jour_echeance' => 'required|integer|min:1|max:28',
+            'jour_echeance' => 'required|integer|min:1|max:31',
             'is_required'   => 'sometimes|boolean',
             'priority'      => 'sometimes|in:normal,important',
         ]);
@@ -101,7 +101,7 @@ class ChargeController extends Controller
             'libelle'       => 'sometimes|string|max:100',
             'categorie'     => 'nullable|string|max:50',
             'montant'       => 'sometimes|numeric|min:0.01',
-            'jour_echeance' => 'sometimes|integer|min:1|max:28',
+            'jour_echeance' => 'sometimes|integer|min:1|max:31',
             'actif'         => 'sometimes|boolean',
             'is_required'   => 'sometimes|boolean',
             'priority'      => 'sometimes|in:normal,important',
