@@ -1,59 +1,79 @@
-import { useEffect, useState } from 'react'
+
+// NotificationsPage.jsx — fix temps réel
+
+import { useEffect, useRef, useState } from 'react'
 import { notificationsAPI } from '../services/api'
+import echo from '../services/echo'
 import { PageHeader, EmptyState, Spinner } from '../components/Ui'
-import { Bell, CheckCheck, Trash2, Wrench, CreditCard, Car, Receipt, MoreVertical, Circle, CheckCircle } from 'lucide-react'
+import { Bell, CheckCheck, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 
-const typeConfig = {
-  maintenance:   { icon: Wrench,    color: 'bg-orange-100 text-orange-600', label: 'maintenance' },
-  responsabilite:{ icon: Car,       color: 'bg-blue-100 text-blue-600',     label: 'responsabilite' },
-  finances:      { icon: CreditCard,color: 'bg-green-100 text-green-600',   label: 'debt' },
-  charges:       { icon: Receipt,   color: 'bg-purple-100 text-purple-600', label: 'charge' },
+const TYPE_LABELS = {
+  maintenance:    'Entretien',
+  responsabilite: 'Véhicule',
+  finances:       'Finance',
+  charges:        'Charge',
 }
 
-function NotifCard({ notif, onRead, onDelete }) {
-  const cfg  = typeConfig[notif.type] || typeConfig.charges
-  const Icon = cfg.icon
-  const date = new Date(notif.created_at)
-  const dateStr = date.toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+const TYPE_COLORS = {
+  maintenance:    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  responsabilite: 'bg-blue-100   text-blue-700   dark:bg-blue-900/30   dark:text-blue-400',
+  finances:       'bg-green-100  text-green-700  dark:bg-green-900/30  dark:text-green-400',
+  charges:        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+}
+
+const BORDER_COLORS = {
+  maintenance:    'border-orange-400',
+  responsabilite: 'border-blue-500',
+  finances:       'border-green-500',
+  charges:        'border-purple-500',
+}
+
+function timeAgo(dateStr) {
+  const diff = Math.floor((Date.now() - new Date(dateStr)) / 60000)
+  if (diff < 1)  return "À l'instant"
+  if (diff < 60) return `il y a ${diff}m`
+  const h = Math.floor(diff / 60)
+  if (h < 24)    return `il y a ${h}h`
+  const d = Math.floor(h / 24)
+  if (d < 7)     return `il y a ${d}j`
+  return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
+}
+
+function NotifCard({ notif, onToggleRead, onDelete }) {
+  const typeColor   = TYPE_COLORS[notif.type]   || TYPE_COLORS.charges
+  const borderColor = BORDER_COLORS[notif.type] || 'border-gray-300'
 
   return (
     <div className={clsx(
-      'card flex items-start gap-4 transition-all duration-200',
-      !notif.is_read && 'border-l-4 border-sakan-blue bg-primary-50/30'
+      'flex items-start gap-3 rounded-xl border bg-white dark:bg-slate-900 p-4 transition-all duration-200',
+      notif.is_read
+        ? 'border-gray-100 dark:border-white/10'
+        : clsx('border-l-4', borderColor, 'border-t border-r border-b border-gray-100 dark:border-white/10')
     )}>
-      {/* Icon */}
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.color}`}>
-        <Icon size={16} />
-      </div>
-
-      {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`badge text-[10px] ${cfg.color}`}>{notif.type}</span>
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <span className={clsx('text-[11px] font-medium px-2 py-0.5 rounded-full', typeColor)}>
+            {TYPE_LABELS[notif.type] || notif.type}
+          </span>
           {notif.is_required && (
-            <span className="badge bg-red-100 text-red-600 text-[10px]">Important</span>
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+              Important
+            </span>
           )}
-          {!notif.is_read && <span className="w-2 h-2 rounded-full bg-sakan-blue flex-shrink-0" />}
-          <span className="text-xs text-gray-400 ml-auto">{dateStr}</span>
+          {!notif.is_read && (
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+          )}
+          <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto">{timeAgo(notif.created_at)}</span>
         </div>
-        <p className="text-sm text-gray-700 leading-relaxed">{notif.message}</p>
-        <div className="flex items-center gap-3 mt-2">
-          {!notif.is_read ? (
-            <button onClick={() => onRead(notif.id)}
-              className="text-xs text-sakan-blue hover:underline flex items-center gap-1">
-              <CheckCircle size={12} /> Mark as read
-            </button>
-          ) : (
-            <button onClick={() => onRead(notif.id)}
-              className="text-xs text-gray-400 hover:underline flex items-center gap-1">
-              <Circle size={12} /> Mark as unread
-            </button>
-          )}
-          <button onClick={() => onDelete(notif.id)}
-            className="text-xs text-red-400 hover:underline flex items-center gap-1">
-            <Trash2 size={12} /> Remove
+        <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed mb-2">{notif.message}</p>
+        <div className="flex items-center gap-4">
+          <button onClick={() => onToggleRead(notif.id)} className="text-xs text-blue-500 hover:underline">
+            {notif.is_read ? 'Marquer non lu' : 'Marquer comme lu'}
+          </button>
+          <button onClick={() => onDelete(notif.id)} className="text-xs text-red-400 hover:underline">
+            Supprimer
           </button>
         </div>
       </div>
@@ -62,22 +82,22 @@ function NotifCard({ notif, onRead, onDelete }) {
 }
 
 export default function NotificationsPage() {
-  const [notifs,   setNotifs]   = useState([])
-  const [total,    setTotal]    = useState(0)
-  const [unread,   setUnread]   = useState(0)
-  const [hasMore,  setHasMore]  = useState(false)
-  const [loading,  setLoading]  = useState(true)
-  const [tab,      setTab]      = useState('all') // 'all' | 'unread'
-  const [clearing, setClearing] = useState(false)
+  const [notifs,  setNotifs]  = useState([])
+  const [unread,  setUnread]  = useState(0)
+  const [tab,     setTab]     = useState('all')
+  const [loading, setLoading] = useState(true)
 
+  // ✅ Garde une référence stable pour éviter les doublons dans le listener
+  const notifsRef = useRef(notifs)
+  useEffect(() => { notifsRef.current = notifs }, [notifs])
+
+  // ── Chargement initial ──────────────────────────────────────────────────────
   const load = (params = {}) => {
     setLoading(true)
     notificationsAPI.list(params)
       .then(r => {
         setNotifs(r.data.data)
-        setTotal(r.data.total)
         setUnread(r.data.unread_count)
-        setHasMore(r.data.has_more)
       })
       .finally(() => setLoading(false))
   }
@@ -86,22 +106,73 @@ export default function NotificationsPage() {
     load(tab === 'unread' ? { non_lues: true } : {})
   }, [tab])
 
-  const markRead = async (id) => {
+  // ── Temps réel : abonnement unique, monté une seule fois ───────────────────
+  useEffect(() => {
+    const raw = localStorage.getItem('sakan_user')
+    if (!raw) return
+
+    let userId
+    try { userId = JSON.parse(raw)?.id } catch { return }
+    if (!userId) return
+
+    // ✅ On attend que Echo soit connecté avant d'écouter
+    const subscribe = () => {
+      const channel = echo.private(`private-user.${userId}`)
+
+      channel.listen('.NewNotificationEvent', (e) => {
+        const incoming = e.notification ?? e  // ✅ certains setups envoient l'objet directement
+
+        // ✅ Pas de doublon : on vérifie via la ref (pas le state)
+        if (notifsRef.current.find(n => n.id === incoming.id)) return
+
+        setNotifs(prev => [incoming, ...prev])
+        setUnread(prev => prev + 1)
+        toast.success('Nouvelle notification reçue', { icon: '🔔' })
+      })
+
+      // ✅ Optionnel : log erreur de souscription Pusher
+      channel.error((err) => {
+        console.error('[Echo] Erreur channel:', err)
+      })
+
+      return channel
+    }
+
+    let channel
+
+    // ✅ Si Echo est déjà connecté → s'abonner immédiatement
+    // Sinon → attendre l'événement "connected"
+    if (echo.connector?.pusher?.connection?.state === 'connected') {
+      channel = subscribe()
+    } else {
+      const onConnected = () => { channel = subscribe() }
+      echo.connector.pusher.connection.bind('connected', onConnected)
+
+      // cleanup si pas encore connecté au démontage
+      return () => {
+        echo.connector.pusher.connection.unbind('connected', onConnected)
+        channel?.stopListening('.NewNotificationEvent')
+      }
+    }
+
+    return () => {
+      channel?.stopListening('.NewNotificationEvent')
+    }
+  }, []) // ✅ [] = une seule fois, pas de re-abonnement à chaque render
+
+  // ── Actions ─────────────────────────────────────────────────────────────────
+  const toggleRead = async (id) => {
     const target = notifs.find(n => n.id === id)
     if (!target) return
     const wasRead = target.is_read
-
-    // Optimistic update
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: !wasRead } : n))
     setUnread(prev => wasRead ? prev + 1 : Math.max(0, prev - 1))
-
     try {
       await notificationsAPI.markRead(id)
     } catch {
-      // Rollback on error
       setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: wasRead } : n))
       setUnread(prev => wasRead ? Math.max(0, prev - 1) : prev + 1)
-      toast.error('Erreur.')
+      toast.error('Erreur')
     }
   }
 
@@ -110,88 +181,79 @@ export default function NotificationsPage() {
       await notificationsAPI.markAllRead()
       setNotifs(prev => prev.map(n => ({ ...n, is_read: true })))
       setUnread(0)
-      toast.success('Toutes les notifications sont lues.')
-    } catch { toast.error('Erreur.') }
+    } catch { toast.error('Erreur') }
   }
 
   const deleteNotif = async (id) => {
+    const removed = notifs.find(n => n.id === id)
+    setNotifs(prev => prev.filter(n => n.id !== id))
+    if (removed && !removed.is_read) setUnread(prev => Math.max(0, prev - 1))
     try {
       await notificationsAPI.delete(id)
-      setNotifs(prev => prev.filter(n => n.id !== id))
-      toast.success('Notification supprimée.')
-    } catch { toast.error('Erreur.') }
+    } catch { toast.error('Erreur'); load() }
   }
 
   const clearRead = async () => {
-    setClearing(true)
     try {
       await notificationsAPI.deleteAll()
       setNotifs(prev => prev.filter(n => !n.is_read))
-      toast.success('Notifications lues supprimées.')
-    } catch { toast.error('Erreur.') }
-    finally { setClearing(false) }
+    } catch { toast.error('Erreur') }
   }
 
+  const visible = tab === 'unread' ? notifs.filter(n => !n.is_read) : notifs
+
   return (
-    <div className="fade-in flex flex-col gap-6">
+    <div className="fade-in flex flex-col gap-5">
       <PageHeader
         title="Notifications"
-        subtitle="Manage alerts for your debts, vehicle maintenance, and recurring charges."
+        subtitle="Alertes pour vos dettes, entretien et charges."
         action={
-          <button onClick={markAllRead} className="btn-primary">
-            <CheckCheck size={15} /> Mark all as read
-          </button>
+          <div className="flex gap-2">
+            <button onClick={markAllRead} className="btn-secondary text-sm">
+              <CheckCheck size={14} /> Tout lire
+            </button>
+            <button onClick={clearRead} className="btn-ghost text-sm text-red-400">
+              <Trash2 size={14} /> Supprimer les lues
+            </button>
+          </div>
         }
       />
 
       {/* Tabs */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+      <div className="flex gap-1.5">
+        {[
+          { key: 'all',    label: 'Toutes' },
+          { key: 'unread', label: `Non lues${unread > 0 ? ` (${unread})` : ''}` },
+        ].map(({ key, label }) => (
           <button
-            onClick={() => setTab('all')}
+            key={key}
+            onClick={() => setTab(key)}
             className={clsx(
-              'px-4 py-1.5 rounded-lg text-sm font-medium transition-all',
-              tab === 'all' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+              'px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+              tab === key
+                ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
+                : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-300'
             )}
           >
-            All Notifications <span className="text-xs ml-1 text-gray-400">{total}</span>
+            {label}
           </button>
-          <button
-            onClick={() => setTab('unread')}
-            className={clsx(
-              'px-4 py-1.5 rounded-lg text-sm font-medium transition-all',
-              tab === 'unread' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-400 hover:text-gray-600'
-            )}
-          >
-            Unread <span className="text-xs ml-1 text-sakan-blue font-bold">{unread}</span>
-          </button>
-        </div>
-
-        <button onClick={clearRead} disabled={clearing}
-          className="text-xs text-red-400 hover:text-red-600 flex items-center gap-1 transition-colors disabled:opacity-50">
-          <Trash2 size={12} /> Supprimer les lues
-        </button>
+        ))}
       </div>
 
       {/* List */}
       {loading ? (
-        <div className="flex justify-center py-16"><Spinner size={32} /></div>
-      ) : notifs.length === 0 ? (
+        <div className="flex justify-center py-16"><Spinner size={28} /></div>
+      ) : visible.length === 0 ? (
         <EmptyState
-          icon="🔔"
+          icon={<Bell size={40} />}
           title="Aucune notification"
-          description={tab === 'unread' ? 'Toutes les notifications sont lues.' : 'Aucune notification pour le moment.'}
+          description={tab === 'unread' ? 'Tout est lu.' : 'Rien pour le moment.'}
         />
       ) : (
-        <div className="flex flex-col gap-3">
-          {notifs.map(n => (
-            <NotifCard key={n.id} notif={n} onRead={markRead} onDelete={deleteNotif} />
+        <div className="flex flex-col gap-2">
+          {visible.map(n => (
+            <NotifCard key={n.id} notif={n} onToggleRead={toggleRead} onDelete={deleteNotif} />
           ))}
-          {hasMore && (
-            <button className="btn-secondary self-center text-sm" onClick={() => load({ page: 2 })}>
-              Charger plus
-            </button>
-          )}
         </div>
       )}
     </div>
