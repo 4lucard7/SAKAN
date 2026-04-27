@@ -7,10 +7,10 @@ import toast from 'react-hot-toast'
 import clsx from 'clsx'
 
 const typeConfig = {
-  maintenance:    { icon: Wrench,     color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',  gradient: 'from-orange-500 to-amber-500' },
-  responsabilite: { icon: Car,        color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',          gradient: 'from-blue-500 to-cyan-500' },
-  finances:       { icon: CreditCard, color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',      gradient: 'from-green-500 to-emerald-500' },
-  charges:        { icon: Receipt,    color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',  gradient: 'from-purple-500 to-violet-500' },
+  maintenance: { icon: Wrench, color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400', gradient: 'from-orange-500 to-amber-500' },
+  responsabilite: { icon: Car, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400', gradient: 'from-blue-500 to-cyan-500' },
+  finances: { icon: CreditCard, color: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400', gradient: 'from-green-500 to-emerald-500' },
+  charges: { icon: Receipt, color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400', gradient: 'from-purple-500 to-violet-500' },
 }
 
 function timeAgo(dateStr) {
@@ -130,7 +130,7 @@ export default function NotificationDropdown() {
   // Fetch unread count on mount and request OS Notification permission
   useEffect(() => {
     fetchUnreadCount()
-    
+
     // Demander la permission pour les notifications du navigateur (OS-level)
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
       Notification.requestPermission()
@@ -159,14 +159,14 @@ export default function NotificationDropdown() {
     const channel = echo.private(`private-user.${user.id}`)
       .listen('.NewNotificationEvent', (e) => {
         console.log('Real-time notification received:', e)
-        
+
         // Add to list
         setNotifs(prev => {
           const exists = prev.find(n => n.id === e.notification.id)
           if (exists) return prev
           return [e.notification, ...prev].slice(0, 8)
         })
-        
+
         // Increment count
         setUnreadCount(prev => prev + 1)
 
@@ -180,7 +180,7 @@ export default function NotificationDropdown() {
             });
           }
         }
-        
+
         // Show Toast
         toast.custom((t) => (
           <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white dark:bg-slate-900 shadow-lg rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 border border-gray-100 dark:border-slate-800`}>
@@ -234,7 +234,7 @@ export default function NotificationDropdown() {
         setNotifs(r.data.data || [])
         setUnreadCount(r.data.unread_count || 0)
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false))
   }
 
