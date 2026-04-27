@@ -110,17 +110,32 @@
   "notifications": {
     "title": "Notifications",
     "subtitle": "Gérez vos alertes de dettes, entretiens de véhicules et charges récurrentes.",
-    "mark_all_read": "Tout marquer comme lu",
-    "all": "Toutes les notifications",
+    "mark_all_read": "Tout lire",
+    "all": "Toutes",
     "unread": "Non lues",
     "clear_read": "Supprimer les lues",
     "mark_read": "Marquer comme lu",
-    "mark_unread": "Marquer comme non lu",
+    "mark_unread": "Marquer non lu",
     "remove": "Supprimer",
+    "important": "Important",
     "no_notifications": "Aucune notification",
     "all_read": "Toutes les notifications sont lues.",
     "no_notifs_yet": "Aucune notification pour le moment.",
-    "load_more": "Charger plus"
+    "load_more": "Charger plus",
+    "new_received": "Nouvelle notification reçue",
+    "error": "Erreur",
+    "types": {
+      "maintenance": "Entretien",
+      "responsabilite": "Véhicule",
+      "finances": "Finance",
+      "charges": "Charge"
+    },
+    "time": {
+      "just_now": "À l'instant",
+      "minutes_ago": "il y a {{count}}m",
+      "hours_ago": "il y a {{count}}h",
+      "days_ago": "il y a {{count}}j"
+    }
   },
   "dashboard": {
     "title": "Tableau de Bord",

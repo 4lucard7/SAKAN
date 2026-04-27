@@ -107,6 +107,36 @@
     "register_car_first": "Register a vehicle first.",
     "history": "Maintenance History"
   },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Manage alerts for your debts, vehicle maintenance, and recurring charges.",
+    "mark_all_read": "Read all",
+    "all": "All",
+    "unread": "Unread",
+    "clear_read": "Delete read",
+    "mark_read": "Mark as read",
+    "mark_unread": "Mark as unread",
+    "remove": "Delete",
+    "important": "Important",
+    "no_notifications": "No notifications",
+    "all_read": "All notifications are read.",
+    "no_notifs_yet": "No notifications yet.",
+    "load_more": "Load more",
+    "new_received": "New notification received",
+    "error": "Error",
+    "types": {
+      "maintenance": "Maintenance",
+      "responsabilite": "Vehicle",
+      "finances": "Finance",
+      "charges": "Charge"
+    },
+    "time": {
+      "just_now": "Just now",
+      "minutes_ago": "{{count}}m ago",
+      "hours_ago": "{{count}}h ago",
+      "days_ago": "{{count}}d ago"
+    }
+  },
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Overview of your financial situation",

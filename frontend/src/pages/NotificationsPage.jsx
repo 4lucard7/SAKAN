@@ -1,5 +1,5 @@
 
-// NotificationsPage.jsx — fix temps réel
+// NotificationsPage.jsx — fix temps réel + i18n
 
 import { useEffect, useRef, useState } from 'react'
 import { notificationsAPI } from '../services/api'
@@ -8,13 +8,7 @@ import { PageHeader, EmptyState, Spinner } from '../components/Ui'
 import { Bell, CheckCheck, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
-
-const TYPE_LABELS = {
-  maintenance:    'Entretien',
-  responsabilite: 'Véhicule',
-  finances:       'Finance',
-  charges:        'Charge',
-}
+import { useTranslation } from 'react-i18next'
 
 const TYPE_COLORS = {
   maintenance:    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
@@ -30,18 +24,18 @@ const BORDER_COLORS = {
   charges:        'border-purple-500',
 }
 
-function timeAgo(dateStr) {
+function timeAgo(dateStr, t) {
   const diff = Math.floor((Date.now() - new Date(dateStr)) / 60000)
-  if (diff < 1)  return "À l'instant"
-  if (diff < 60) return `il y a ${diff}m`
+  if (diff < 1)  return t('notifications.time.just_now')
+  if (diff < 60) return t('notifications.time.minutes_ago', { count: diff })
   const h = Math.floor(diff / 60)
-  if (h < 24)    return `il y a ${h}h`
+  if (h < 24)    return t('notifications.time.hours_ago', { count: h })
   const d = Math.floor(h / 24)
-  if (d < 7)     return `il y a ${d}j`
+  if (d < 7)     return t('notifications.time.days_ago', { count: d })
   return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })
 }
 
-function NotifCard({ notif, onToggleRead, onDelete }) {
+function NotifCard({ notif, onToggleRead, onDelete, t }) {
   const typeColor   = TYPE_COLORS[notif.type]   || TYPE_COLORS.charges
   const borderColor = BORDER_COLORS[notif.type] || 'border-gray-300'
 
@@ -55,25 +49,25 @@ function NotifCard({ notif, onToggleRead, onDelete }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className={clsx('text-[11px] font-medium px-2 py-0.5 rounded-full', typeColor)}>
-            {TYPE_LABELS[notif.type] || notif.type}
+            {t(`notifications.types.${notif.type}`)}
           </span>
           {notif.is_required && (
             <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-              Important
+              {t('notifications.important')}
             </span>
           )}
           {!notif.is_read && (
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
           )}
-          <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto">{timeAgo(notif.created_at)}</span>
+          <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto">{timeAgo(notif.created_at, t)}</span>
         </div>
         <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed mb-2">{notif.message}</p>
         <div className="flex items-center gap-4">
           <button onClick={() => onToggleRead(notif.id)} className="text-xs text-blue-500 hover:underline">
-            {notif.is_read ? 'Marquer non lu' : 'Marquer comme lu'}
+            {notif.is_read ? t('notifications.mark_unread') : t('notifications.mark_read')}
           </button>
           <button onClick={() => onDelete(notif.id)} className="text-xs text-red-400 hover:underline">
-            Supprimer
+            {t('notifications.remove')}
           </button>
         </div>
       </div>
@@ -82,6 +76,7 @@ function NotifCard({ notif, onToggleRead, onDelete }) {
 }
 
 export default function NotificationsPage() {
+  const { t } = useTranslation()
   const [notifs,  setNotifs]  = useState([])
   const [unread,  setUnread]  = useState(0)
   const [tab,     setTab]     = useState('all')
@@ -127,7 +122,7 @@ export default function NotificationsPage() {
 
         setNotifs(prev => [incoming, ...prev])
         setUnread(prev => prev + 1)
-        toast.success('Nouvelle notification reçue', { icon: '🔔' })
+        toast.success(t('notifications.new_received'), { icon: '🔔' })
       })
 
       // ✅ Optionnel : log erreur de souscription Pusher
@@ -172,7 +167,7 @@ export default function NotificationsPage() {
     } catch {
       setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: wasRead } : n))
       setUnread(prev => wasRead ? Math.max(0, prev - 1) : prev + 1)
-      toast.error('Erreur')
+      toast.error(t('notifications.error'))
     }
   }
 
@@ -181,7 +176,7 @@ export default function NotificationsPage() {
       await notificationsAPI.markAllRead()
       setNotifs(prev => prev.map(n => ({ ...n, is_read: true })))
       setUnread(0)
-    } catch { toast.error('Erreur') }
+    } catch { toast.error(t('notifications.error')) }
   }
 
   const deleteNotif = async (id) => {
@@ -190,14 +185,14 @@ export default function NotificationsPage() {
     if (removed && !removed.is_read) setUnread(prev => Math.max(0, prev - 1))
     try {
       await notificationsAPI.delete(id)
-    } catch { toast.error('Erreur'); load() }
+    } catch { toast.error(t('notifications.error')); load() }
   }
 
   const clearRead = async () => {
     try {
       await notificationsAPI.deleteAll()
       setNotifs(prev => prev.filter(n => !n.is_read))
-    } catch { toast.error('Erreur') }
+    } catch { toast.error(t('notifications.error')) }
   }
 
   const visible = tab === 'unread' ? notifs.filter(n => !n.is_read) : notifs
@@ -205,15 +200,15 @@ export default function NotificationsPage() {
   return (
     <div className="fade-in flex flex-col gap-5">
       <PageHeader
-        title="Notifications"
-        subtitle="Alertes pour vos dettes, entretien et charges."
+        title={t('notifications.title')}
+        subtitle={t('notifications.subtitle')}
         action={
           <div className="flex gap-2">
             <button onClick={markAllRead} className="btn-secondary text-sm">
-              <CheckCheck size={14} /> Tout lire
+              <CheckCheck size={14} /> {t('notifications.mark_all_read')}
             </button>
             <button onClick={clearRead} className="btn-ghost text-sm text-red-400">
-              <Trash2 size={14} /> Supprimer les lues
+              <Trash2 size={14} /> {t('notifications.clear_read')}
             </button>
           </div>
         }
@@ -222,8 +217,8 @@ export default function NotificationsPage() {
       {/* Tabs */}
       <div className="flex gap-1.5">
         {[
-          { key: 'all',    label: 'Toutes' },
-          { key: 'unread', label: `Non lues${unread > 0 ? ` (${unread})` : ''}` },
+          { key: 'all',    label: t('notifications.all') },
+          { key: 'unread', label: `${t('notifications.unread')}${unread > 0 ? ` (${unread})` : ''}` },
         ].map(({ key, label }) => (
           <button
             key={key}
@@ -246,13 +241,13 @@ export default function NotificationsPage() {
       ) : visible.length === 0 ? (
         <EmptyState
           icon={<Bell size={40} />}
-          title="Aucune notification"
-          description={tab === 'unread' ? 'Tout est lu.' : 'Rien pour le moment.'}
+          title={t('notifications.no_notifications')}
+          description={tab === 'unread' ? t('notifications.all_read') : t('notifications.no_notifs_yet')}
         />
       ) : (
         <div className="flex flex-col gap-2">
           {visible.map(n => (
-            <NotifCard key={n.id} notif={n} onToggleRead={toggleRead} onDelete={deleteNotif} />
+            <NotifCard key={n.id} notif={n} onToggleRead={toggleRead} onDelete={deleteNotif} t={t} />
           ))}
         </div>
       )}

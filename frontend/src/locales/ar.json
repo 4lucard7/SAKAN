@@ -107,6 +107,36 @@
     "register_car_first": "سجل سيارة أولاً.",
     "history": "سجل الصيانة"
   },
+  "notifications": {
+    "title": "الإشعارات",
+    "subtitle": "إدارة التنبيهات الخاصة بالديون وصيانة السيارة والمصاريف المتكررة.",
+    "mark_all_read": "قراءة الكل",
+    "all": "الكل",
+    "unread": "غير مقروءة",
+    "clear_read": "حذف المقروءة",
+    "mark_read": "تحديد كمقروء",
+    "mark_unread": "تحديد كغير مقروء",
+    "remove": "حذف",
+    "important": "مهم",
+    "no_notifications": "لا توجد إشعارات",
+    "all_read": "جميع الإشعارات مقروءة.",
+    "no_notifs_yet": "لا توجد إشعارات حالياً.",
+    "load_more": "تحميل المزيد",
+    "new_received": "إشعار جديد",
+    "error": "خطأ",
+    "types": {
+      "maintenance": "صيانة",
+      "responsabilite": "سيارة",
+      "finances": "مالية",
+      "charges": "مصاريف"
+    },
+    "time": {
+      "just_now": "الآن",
+      "minutes_ago": "منذ {{count}} د",
+      "hours_ago": "منذ {{count}} س",
+      "days_ago": "منذ {{count}} ي"
+    }
+  },
   "dashboard": {
     "title": "لوحة القيادة",
     "subtitle": "ملخص لوضعك المالي",
