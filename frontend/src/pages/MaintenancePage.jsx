@@ -237,7 +237,7 @@ export default function MaintenancePage() {
         </div>
 
         {maintenances.length === 0 ? (
-          <EmptyState icon="🔧" title={t('common.no_data')} description={t('maintenance.desc_no_maintenance')} />
+          <EmptyState icon={<Wrench size={15}/>} title={t('common.no_data')} description={t('maintenance.desc_no_maintenance')} />
         ) : (
           <>
             {/* Desktop Table */}
