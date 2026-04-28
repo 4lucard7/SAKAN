@@ -97,10 +97,9 @@ function DropdownNotifItem({ notif, onRead, onDelete }) {
 }
 
 export default function NotificationDropdown() {
-  const { user } = useAuth()
+  const { user, unreadNotifications, loadUnreadNotifications } = useAuth()
   const [open, setOpen] = useState(false)
   const [notifs, setNotifs] = useState([])
-  const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [initialLoad, setInitialLoad] = useState(true)
   const dropdownRef = useRef(null)
@@ -131,10 +130,10 @@ export default function NotificationDropdown() {
 
   // Fetch unread count on mount and request OS Notification permission
   useEffect(() => {
-    fetchUnreadCount()
+    loadUnreadNotifications()
 
     // Listen for manual refresh events from other components
-    window.addEventListener('notifications:refresh', fetchUnreadCount)
+    window.addEventListener('notifications:refresh', loadUnreadNotifications)
 
     // Demander la permission pour les notifications du navigateur (OS-level)
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
@@ -142,9 +141,9 @@ export default function NotificationDropdown() {
     }
 
     // Poll every 30 seconds for new notifications
-    const interval = setInterval(fetchUnreadCount, 30000)
+    const interval = setInterval(loadUnreadNotifications, 30000)
     return () => {
-      window.removeEventListener('notifications:refresh', fetchUnreadCount)
+      window.removeEventListener('notifications:refresh', loadUnreadNotifications)
       clearInterval(interval)
     }
   }, [user])
@@ -156,91 +155,12 @@ export default function NotificationDropdown() {
     }
   }, [open])
 
-  // Real-time listener
-  useEffect(() => {
-    const userStr = localStorage.getItem('sakan_user')
-    if (!userStr) return
-    const user = JSON.parse(userStr)
-
-    if (!user.id) return
-
-    const channel = echo.private(`private-user.${user.id}`)
-      .listen('.NewNotificationEvent', (e) => {
-        console.log('Real-time notification received:', e)
-
-        // Add to list
-        setNotifs(prev => {
-          const exists = prev.find(n => n.id === e.notification.id)
-          if (exists) return prev
-          return [e.notification, ...prev].slice(0, 8)
-        })
-
-        // Increment count
-        setUnreadCount(prev => prev + 1)
-
-        // Show OS-level Notification if tab is in background
-        if ('Notification' in window && Notification.permission === 'granted') {
-          // Utiliser document.hidden pour ne pas spammer l'OS si l'utilisateur est actif sur l'onglet
-          if (document.hidden) {
-            new Notification('Sakan - Nouvelle alerte', {
-              body: e.notification.message,
-              icon: '/favicon.ico' // Assurez-vous d'avoir un favicon.ico dans public/
-            });
-          }
-        }
-
-        // Show Toast
-        toast.custom((t) => (
-          <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white dark:bg-slate-900 shadow-lg rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 border border-gray-100 dark:border-slate-800`}>
-            <div className="flex-1 w-0 p-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 pt-0.5">
-                  <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center">
-                    <Bell className="h-5 w-5 text-sakan-blue dark:text-blue-400" />
-                  </div>
-                </div>
-                <div className="ml-3 flex-1">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">
-                    Nouvelle notification
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {e.notification.message}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="flex border-l border-gray-100 dark:border-slate-800">
-              <button
-                onClick={() => toast.dismiss(t.id)}
-                className="w-full border border-transparent rounded-none rounded-r-2xl p-4 flex items-center justify-center text-xs font-bold text-sakan-blue hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-              >
-                Fermer
-              </button>
-            </div>
-          </div>
-        ), { duration: 5000 })
-      })
-
-    return () => {
-      channel.stopListening('.NewNotificationEvent')
-    }
-  }, [user])
-
-  const fetchUnreadCount = () => {
-    notificationsAPI.list({ per_page: 1 })
-      .then(r => {
-        setUnreadCount(r.data.unread_count || 0)
-      })
-      .catch(() => setUnreadCount(0))
-      .finally(() => setInitialLoad(false))
-  }
-
   const fetchNotifications = () => {
     setLoading(true)
     notificationsAPI.list({ per_page: 8 })
       .then(r => {
         setNotifs(r.data.data || [])
-        setUnreadCount(r.data.unread_count || 0)
+        loadUnreadNotifications()
       })
       .catch(() => { })
       .finally(() => setLoading(false))
@@ -263,17 +183,16 @@ export default function NotificationDropdown() {
     setNotifs(prev => prev.map(n =>
       n.id === id ? { ...n, is_read: !wasRead } : n
     ))
-    setUnreadCount(prev => wasRead ? prev + 1 : Math.max(0, prev - 1))
-
+    
     try {
       await notificationsAPI.markRead(id)
       dispatchRefresh()
+      loadUnreadNotifications()
     } catch {
       // Rollback on error
       setNotifs(prev => prev.map(n =>
         n.id === id ? { ...n, is_read: wasRead } : n
       ))
-      setUnreadCount(prev => wasRead ? Math.max(0, prev - 1) : prev + 1)
       toast.error('Error updating notification.')
     }
   }
@@ -282,8 +201,8 @@ export default function NotificationDropdown() {
     try {
       await notificationsAPI.markAllRead()
       dispatchRefresh()
+      loadUnreadNotifications()
       setNotifs(prev => prev.map(n => ({ ...n, is_read: true })))
-      setUnreadCount(0)
       toast.success('All notifications marked as read!')
     } catch {
       toast.error('Error updating notifications.')
@@ -294,11 +213,8 @@ export default function NotificationDropdown() {
     try {
       await notificationsAPI.delete(id)
       dispatchRefresh()
-      const removed = notifs.find(n => n.id === id)
+      loadUnreadNotifications()
       setNotifs(prev => prev.filter(n => n.id !== id))
-      if (removed && !removed.is_read) {
-        setUnreadCount(prev => Math.max(0, prev - 1))
-      }
     } catch {
       toast.error('Error deleting notification.')
     }
@@ -326,14 +242,14 @@ export default function NotificationDropdown() {
         )} />
 
         {/* Unread badge */}
-        {unreadCount > 0 && (
+        {unreadNotifications > 0 && (
           <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-red-500 rounded-full shadow-lg ring-2 ring-white dark:ring-slate-900 animate-bounce-subtle">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadNotifications > 99 ? '99+' : unreadNotifications}
           </span>
         )}
 
         {/* Pulse ring for new notifications */}
-        {unreadCount > 0 && (
+        {unreadNotifications > 0 && (
           <span className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-red-400 rounded-full animate-ping opacity-30 pointer-events-none" />
         )}
       </button>
@@ -357,14 +273,14 @@ export default function NotificationDropdown() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800 bg-gradient-to-r from-gray-50 to-white dark:from-slate-800/50 dark:to-slate-900">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-gray-800 dark:text-white">Notifications</h3>
-              {unreadCount > 0 && (
+              {unreadNotifications > 0 && (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sakan-blue/10 text-sakan-blue dark:bg-blue-900/30 dark:text-blue-400">
-                  {unreadCount} new
+                  {unreadNotifications} new
                 </span>
               )}
             </div>
             <div className="flex items-center gap-1">
-              {unreadCount > 0 && (
+              {unreadNotifications > 0 && (
                 <button
                   onClick={markAllRead}
                   className="flex items-center gap-1 text-[11px] font-medium text-sakan-blue hover:text-blue-700 dark:hover:text-blue-300 px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"

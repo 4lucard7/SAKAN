@@ -77,10 +77,9 @@ function NotifCard({ notif, onToggleRead, onDelete, t }) {
 }
 
 export default function NotificationsPage() {
-  const { user } = useAuth()
+  const { user, unreadNotifications, setUnreadNotifications, loadUnreadNotifications } = useAuth()
   const { t } = useTranslation()
   const [notifs,  setNotifs]  = useState([])
-  const [unread,  setUnread]  = useState(0)
   const [tab,     setTab]     = useState('all')
   const [loading, setLoading] = useState(true)
 
@@ -94,7 +93,7 @@ export default function NotificationsPage() {
     notificationsAPI.list(params)
       .then(r => {
         setNotifs(r.data.data)
-        setUnread(r.data.unread_count)
+        setUnreadNotifications(r.data.unread_count)
       })
       .finally(() => setLoading(false))
   }
@@ -104,62 +103,10 @@ export default function NotificationsPage() {
 
     const handleRefresh = () => load(tab === 'unread' ? { non_lues: true } : {})
     window.addEventListener('notifications:refresh', handleRefresh)
-    return () => window.removeEventListener('notifications:refresh', handleRefresh)
-  }, [tab])
-
-  // ── Temps réel : abonnement unique, monté une seule fois ───────────────────
-  useEffect(() => {
-    const raw = localStorage.getItem('sakan_user')
-    if (!raw) return
-
-    let userId
-    try { userId = JSON.parse(raw)?.id } catch { return }
-    if (!userId) return
-
-    // ✅ On attend que Echo soit connecté avant d'écouter
-    const subscribe = () => {
-      const channel = echo.private(`private-user.${userId}`)
-
-      channel.listen('.NewNotificationEvent', (e) => {
-        const incoming = e.notification ?? e  // ✅ certains setups envoient l'objet directement
-
-        // ✅ Pas de doublon : on vérifie via la ref (pas le state)
-        if (notifsRef.current.find(n => n.id === incoming.id)) return
-
-        setNotifs(prev => [incoming, ...prev])
-        setUnread(prev => prev + 1)
-        toast.success(t('notifications.new_received'), { icon: '🔔' })
-      })
-
-      // ✅ Optionnel : log erreur de souscription Pusher
-      channel.error((err) => {
-        console.error('[Echo] Erreur channel:', err)
-      })
-
-      return channel
-    }
-
-    let channel
-
-    // ✅ Si Echo est déjà connecté → s'abonner immédiatement
-    // Sinon → attendre l'événement "connected"
-    if (echo.connector?.pusher?.connection?.state === 'connected') {
-      channel = subscribe()
-    } else {
-      const onConnected = () => { channel = subscribe() }
-      echo.connector.pusher.connection.bind('connected', onConnected)
-
-      // cleanup si pas encore connecté au démontage
-      return () => {
-        echo.connector.pusher.connection.unbind('connected', onConnected)
-        channel?.stopListening('.NewNotificationEvent')
-      }
-    }
-
     return () => {
-      channel?.stopListening('.NewNotificationEvent')
+      window.removeEventListener('notifications:refresh', handleRefresh)
     }
-  }, [user]) // ✅ Re-run on login/logout
+  }, [tab, user])
 
   // ── Actions ─────────────────────────────────────────────────────────────────
   const dispatchRefresh = () => {
@@ -171,13 +118,12 @@ export default function NotificationsPage() {
     if (!target) return
     const wasRead = target.is_read
     setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: !wasRead } : n))
-    setUnread(prev => wasRead ? prev + 1 : Math.max(0, prev - 1))
     try {
       await notificationsAPI.markRead(id)
       dispatchRefresh()
+      loadUnreadNotifications()
     } catch {
       setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: wasRead } : n))
-      setUnread(prev => wasRead ? Math.max(0, prev - 1) : prev + 1)
       toast.error(t('notifications.error'))
     }
   }
@@ -186,18 +132,17 @@ export default function NotificationsPage() {
     try {
       await notificationsAPI.markAllRead()
       dispatchRefresh()
+      loadUnreadNotifications()
       setNotifs(prev => prev.map(n => ({ ...n, is_read: true })))
-      setUnread(0)
     } catch { toast.error(t('notifications.error')) }
   }
 
   const deleteNotif = async (id) => {
-    const removed = notifs.find(n => n.id === id)
     setNotifs(prev => prev.filter(n => n.id !== id))
-    if (removed && !removed.is_read) setUnread(prev => Math.max(0, prev - 1))
     try {
       await notificationsAPI.delete(id)
       dispatchRefresh()
+      loadUnreadNotifications()
     } catch { toast.error(t('notifications.error')); load() }
   }
 
@@ -205,6 +150,7 @@ export default function NotificationsPage() {
     try {
       await notificationsAPI.deleteAll()
       dispatchRefresh()
+      loadUnreadNotifications()
       setNotifs(prev => prev.filter(n => !n.is_read))
     } catch { toast.error(t('notifications.error')) }
   }
@@ -232,7 +178,7 @@ export default function NotificationsPage() {
       <div className="flex gap-1.5">
         {[
           { key: 'all',    label: t('notifications.all') },
-          { key: 'unread', label: `${t('notifications.unread')}${unread > 0 ? ` (${unread})` : ''}` },
+          { key: 'unread', label: `${t('notifications.unread')}${unreadNotifications > 0 ? ` (${unreadNotifications})` : ''}` },
         ].map(({ key, label }) => (
           <button
             key={key}
