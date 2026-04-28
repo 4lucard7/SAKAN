@@ -11,8 +11,7 @@ const echo = new Echo({
     wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
     forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
-    // URL d'auth pour les channels privés (Sanctum)
-    // On retire /api du baseURL car Echo rajoute souvent son propre chemin ou on le met en absolu
+// URL d'auth pour les channels privés (Sanctum)
     authEndpoint: 'http://localhost:8000/api/broadcasting/auth',
     auth: {
         headers: {
@@ -21,5 +20,11 @@ const echo = new Echo({
         },
     },
 });
+
+export const updateEchoToken = (token) => {
+    if (echo.connector?.options?.auth?.headers) {
+        echo.connector.options.auth.headers.Authorization = `Bearer ${token}`;
+    }
+};
 
 export default echo;

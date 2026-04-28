@@ -9,6 +9,7 @@ import { Bell, CheckCheck, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../context/AuthContext'
 
 const TYPE_COLORS = {
   maintenance:    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
@@ -76,6 +77,7 @@ function NotifCard({ notif, onToggleRead, onDelete, t }) {
 }
 
 export default function NotificationsPage() {
+  const { user } = useAuth()
   const { t } = useTranslation()
   const [notifs,  setNotifs]  = useState([])
   const [unread,  setUnread]  = useState(0)
@@ -99,6 +101,10 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     load(tab === 'unread' ? { non_lues: true } : {})
+
+    const handleRefresh = () => load(tab === 'unread' ? { non_lues: true } : {})
+    window.addEventListener('notifications:refresh', handleRefresh)
+    return () => window.removeEventListener('notifications:refresh', handleRefresh)
   }, [tab])
 
   // ── Temps réel : abonnement unique, monté une seule fois ───────────────────
@@ -153,9 +159,13 @@ export default function NotificationsPage() {
     return () => {
       channel?.stopListening('.NewNotificationEvent')
     }
-  }, []) // ✅ [] = une seule fois, pas de re-abonnement à chaque render
+  }, [user]) // ✅ Re-run on login/logout
 
   // ── Actions ─────────────────────────────────────────────────────────────────
+  const dispatchRefresh = () => {
+    window.dispatchEvent(new CustomEvent('notifications:refresh'))
+  }
+
   const toggleRead = async (id) => {
     const target = notifs.find(n => n.id === id)
     if (!target) return
@@ -164,6 +174,7 @@ export default function NotificationsPage() {
     setUnread(prev => wasRead ? prev + 1 : Math.max(0, prev - 1))
     try {
       await notificationsAPI.markRead(id)
+      dispatchRefresh()
     } catch {
       setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: wasRead } : n))
       setUnread(prev => wasRead ? Math.max(0, prev - 1) : prev + 1)
@@ -174,6 +185,7 @@ export default function NotificationsPage() {
   const markAllRead = async () => {
     try {
       await notificationsAPI.markAllRead()
+      dispatchRefresh()
       setNotifs(prev => prev.map(n => ({ ...n, is_read: true })))
       setUnread(0)
     } catch { toast.error(t('notifications.error')) }
@@ -185,12 +197,14 @@ export default function NotificationsPage() {
     if (removed && !removed.is_read) setUnread(prev => Math.max(0, prev - 1))
     try {
       await notificationsAPI.delete(id)
+      dispatchRefresh()
     } catch { toast.error(t('notifications.error')); load() }
   }
 
   const clearRead = async () => {
     try {
       await notificationsAPI.deleteAll()
+      dispatchRefresh()
       setNotifs(prev => prev.filter(n => !n.is_read))
     } catch { toast.error(t('notifications.error')) }
   }

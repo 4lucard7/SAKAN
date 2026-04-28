@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { authAPI, notificationsAPI } from '../services/api'
+import { updateEchoToken } from '../services/echo'
 
 export const AuthContext = createContext()
 
@@ -30,6 +31,7 @@ export function AuthProvider({ children }) {
 
     try {
       const { data } = await authAPI.me()
+      updateEchoToken(token)
       setUser(data)
       await loadUnreadNotifications()
     } catch (err) {
@@ -48,6 +50,7 @@ export function AuthProvider({ children }) {
       const { user, token } = data
       localStorage.setItem('sakan_token', token)
       localStorage.setItem('sakan_user', JSON.stringify(user))
+      updateEchoToken(token)
       setUser(user)
       await loadUnreadNotifications()
       return { success: true }

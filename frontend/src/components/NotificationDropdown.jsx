@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { notificationsAPI } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 import echo from '../services/echo'
 import { Bell, CheckCheck, Wrench, CreditCard, Car, Receipt, CheckCircle, Circle, Trash2, ArrowRight, X } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -96,6 +97,7 @@ function DropdownNotifItem({ notif, onRead, onDelete }) {
 }
 
 export default function NotificationDropdown() {
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [notifs, setNotifs] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
@@ -131,6 +133,9 @@ export default function NotificationDropdown() {
   useEffect(() => {
     fetchUnreadCount()
 
+    // Listen for manual refresh events from other components
+    window.addEventListener('notifications:refresh', fetchUnreadCount)
+
     // Demander la permission pour les notifications du navigateur (OS-level)
     if ('Notification' in window && Notification.permission !== 'granted' && Notification.permission !== 'denied') {
       Notification.requestPermission()
@@ -138,8 +143,11 @@ export default function NotificationDropdown() {
 
     // Poll every 30 seconds for new notifications
     const interval = setInterval(fetchUnreadCount, 30000)
-    return () => clearInterval(interval)
-  }, [])
+    return () => {
+      window.removeEventListener('notifications:refresh', fetchUnreadCount)
+      clearInterval(interval)
+    }
+  }, [user])
 
   // Fetch full list when opening
   useEffect(() => {
@@ -216,7 +224,7 @@ export default function NotificationDropdown() {
     return () => {
       channel.stopListening('.NewNotificationEvent')
     }
-  }, [])
+  }, [user])
 
   const fetchUnreadCount = () => {
     notificationsAPI.list({ per_page: 1 })
@@ -242,6 +250,10 @@ export default function NotificationDropdown() {
     setOpen(prev => !prev)
   }
 
+  const dispatchRefresh = () => {
+    window.dispatchEvent(new CustomEvent('notifications:refresh'))
+  }
+
   const markRead = async (id) => {
     const target = notifs.find(n => n.id === id)
     if (!target) return
@@ -255,6 +267,7 @@ export default function NotificationDropdown() {
 
     try {
       await notificationsAPI.markRead(id)
+      dispatchRefresh()
     } catch {
       // Rollback on error
       setNotifs(prev => prev.map(n =>
@@ -268,6 +281,7 @@ export default function NotificationDropdown() {
   const markAllRead = async () => {
     try {
       await notificationsAPI.markAllRead()
+      dispatchRefresh()
       setNotifs(prev => prev.map(n => ({ ...n, is_read: true })))
       setUnreadCount(0)
       toast.success('All notifications marked as read!')
@@ -279,6 +293,7 @@ export default function NotificationDropdown() {
   const deleteNotif = async (id) => {
     try {
       await notificationsAPI.delete(id)
+      dispatchRefresh()
       const removed = notifs.find(n => n.id === id)
       setNotifs(prev => prev.filter(n => n.id !== id))
       if (removed && !removed.is_read) {
