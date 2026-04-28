@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { debtsAPI, tiersAPI } from '../services/api'
 import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/Ui'
-import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, MoreVertical, Coins,Wallet } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, TrendingUp, TrendingDown, MoreVertical, Coins, Wallet } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
@@ -18,7 +18,7 @@ function DebtForm({ initial = {}, tiers, onSave, loading }) {
     setForm(f => ({ ...f, [name]: value }))
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 mt-4">
       <Field label={t('common.tiers')} required>
         <Select name="tier_id" value={form.tier_id} onChange={h} required>
           <option value="">{t('debts.form_tier')}</option>
@@ -63,7 +63,7 @@ function RemboursementForm({ debt, onSave, loading }) {
   const { t } = useTranslation()
   const [montant, setMontant] = useState('')
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(montant) }} className="flex flex-col gap-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(montant) }} className="flex flex-col gap-4 mt-4">
       <div className="bg-primary-50 dark:bg-primary-900/10 rounded-xl p-4 text-sm border border-primary-100 dark:border-primary-900/20">
         <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">{t('debts.summary_prete')}</span><span className="font-semibold dark:text-white">{Number(debt.total_prete).toLocaleString()} MAD</span></div>
         <div className="flex justify-between mt-1"><span className="text-gray-500 dark:text-slate-400">{t('debts.summary_rembourse')}</span><span className="font-semibold text-green-600 dark:text-green-400">{Number(debt.total_rembourse).toLocaleString()} MAD</span></div>
@@ -85,14 +85,14 @@ function RemboursementForm({ debt, onSave, loading }) {
 
 export default function DebtsPage() {
   const { t, i18n } = useTranslation()
-  const [debts,   setDebts]   = useState([])
-  const [tiers,   setTiers]   = useState([])
+  const [debts, setDebts] = useState([])
+  const [tiers, setTiers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [search,  setSearch]  = useState('')
-  const [modal,   setModal]   = useState(null)
-  const [deleting,setDeleting]= useState(null)
-  const [remb,    setRemb]    = useState(null)
-  const [saving,  setSaving]  = useState(false)
+  const [search, setSearch] = useState('')
+  const [modal, setModal] = useState(null)
+  const [deleting, setDeleting] = useState(null)
+  const [remb, setRemb] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -103,9 +103,9 @@ export default function DebtsPage() {
   useEffect(load, [])
 
   const totals = {
-    prete:      debts.reduce((s, d) => s + Number(d.total_prete),      0),
-    rembourse:  debts.reduce((s, d) => s + Number(d.total_rembourse),  0),
-    reste:      debts.reduce((s, d) => s + Number(d.reste),            0),
+    prete: debts.reduce((s, d) => s + Number(d.total_prete), 0),
+    rembourse: debts.reduce((s, d) => s + Number(d.total_rembourse), 0),
+    reste: debts.reduce((s, d) => s + Number(d.reste), 0),
   }
 
   const filtered = debts.filter(d =>
@@ -161,9 +161,9 @@ export default function DebtsPage() {
       {/* Totals */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[
-          { label: t('debts.total_prete'),      value: totals.prete,     color: 'border-l-4 border-sakan-blue dark:border-sakan', icon: TrendingUp   },
-          { label: t('debts.total_rembourse'),  value: totals.rembourse, color: 'border-l-4 border-red-400',    icon: TrendingDown },
-          { label: t('debts.reste'),            value: totals.reste,     color: 'border-l-4 border-green-500',  icon: Coins        },
+          { label: t('debts.total_prete'), value: totals.prete, color: 'border-l-4 border-sakan-blue dark:border-sakan', icon: TrendingUp },
+          { label: t('debts.total_rembourse'), value: totals.rembourse, color: 'border-l-4 border-red-400', icon: TrendingDown },
+          { label: t('debts.reste'), value: totals.reste, color: 'border-l-4 border-green-500', icon: Coins },
         ].map(c => (
           <div key={c.label} className={`card dark:bg-slate-900 dark:border-white/10 dark:border-y dark:border-r ${c.color} transition-colors`}>
             <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-widest font-medium">{c.label}</p>
@@ -300,7 +300,7 @@ export default function DebtsPage() {
                         className="flex-1 p-2 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors flex items-center justify-center gap-1">
                         <Pencil size={13} /> <span className="text-xs">{t('common.edit')}</span>
                       </button>
-                      
+
                       <button onClick={() => setDeleting(d)}
                         className="flex-1 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center gap-1">
                         <Trash2 size={13} /> <span className="text-xs">{t('common.delete')}</span>

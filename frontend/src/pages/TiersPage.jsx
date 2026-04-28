@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react'
 import { tiersAPI } from '../services/api'
 import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, Field, Select } from '../components/Ui'
-import { Plus, Pencil, Trash2, Search,Users} from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-const TYPES = ['famille', 'collègue','Banques','Ecole', 'autre']
+const TYPES = ['famille', 'collègue', 'Banques', 'Ecole', 'autre']
 
 function TierForm({ initial = {}, onSave, loading }) {
   const { t } = useTranslation()
   const [form, setForm] = useState({ name: '', type: '', contact: '', ...initial })
   const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 " > 
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 " >
       <Field label={t('common.name')} required>
-        <input name="name" required value={form.name} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_name')}  />
+        <input name="name" required value={form.name} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_name')} />
       </Field>
       <Field label={t('common.type')} required>
         <input
@@ -46,12 +46,12 @@ function TierForm({ initial = {}, onSave, loading }) {
 
 export default function TiersPage() {
   const { t } = useTranslation()
-  const [tiers,   setTiers]   = useState([])
+  const [tiers, setTiers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [search,  setSearch]  = useState('')
-  const [modal,   setModal]   = useState(null) // null | 'create' | { tier }
-  const [deleting,setDeleting]= useState(null)
-  const [saving,  setSaving]  = useState(false)
+  const [search, setSearch] = useState('')
+  const [modal, setModal] = useState(null) // null | 'create' | { tier }
+  const [deleting, setDeleting] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const load = () => {
     setLoading(true)
@@ -88,14 +88,14 @@ export default function TiersPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-6">
+    <div className="fade-in flex flex-col gap-6 mt-5">
       <PageHeader
         title={t('tiers.title')}
         action={
           <button className="btn-primary" onClick={() => setModal('create')}>
             <Plus size={16} /> {t('tiers.add_tier')}
           </button>
-          
+
         }
       />
 
@@ -195,10 +195,10 @@ export default function TiersPage() {
         )}
       </div>
       <div className="mt-5">
-      <Modal open={!!modal} onClose={() => setModal(null)}
-        title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
-            <TierForm initial={modal?.tier} onSave={save} loading={saving} />
-      </Modal>
+        <Modal open={!!modal} onClose={() => setModal(null)}
+          title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
+          <TierForm initial={modal?.tier} onSave={save} loading={saving} />
+        </Modal>
       </div>
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)}

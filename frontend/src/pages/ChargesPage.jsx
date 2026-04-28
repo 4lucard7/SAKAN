@@ -54,7 +54,7 @@ function ChargeForm({ initial = {}, onSave, loading }) {
     onSave({ ...form, jour_echeance: Number(form.jour_echeance) })
   }
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
       <Field label={t('charges.label')} required>
         <input name="libelle" required value={form.libelle} onChange={h}
           className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('charges.placeholder_libelle')} />

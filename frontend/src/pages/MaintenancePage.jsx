@@ -33,7 +33,7 @@ function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
     setForm(f => ({ ...f, [name]: value }))
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 mt-4">
       <Field label={t('vehicle.car')} required>
         <select name="car_id" required value={form.car_id} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
           {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
@@ -95,9 +95,9 @@ function AlerteBadge({ statut }) {
   const { t } = useTranslation()
   if (!statut || statut === 'ok') return null
   const map = {
-    alerte_date:  { label: t('maintenance.alert_j14'),        color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
-    alerte_km:    { label: t('maintenance.alert_km500'),    color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
-    depasse:      { label: t('maintenance.alert_passed'),   color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'       },
+    alerte_date: { label: t('maintenance.alert_j14'), color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },
+    alerte_km: { label: t('maintenance.alert_km500'), color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
+    depasse: { label: t('maintenance.alert_passed'), color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
   }
   const { label, color } = map[statut] || { label: statut, color: 'bg-gray-100 text-gray-500' }
   return <span className={`badge ${color} flex items-center gap-1`}><AlertTriangle size={10} />{label}</span>
@@ -111,23 +111,23 @@ const formatKm = (value) => {
 export default function MaintenancePage() {
   const { t, i18n } = useTranslation()
   const [maintenances, setMaintenances] = useState([])
-  const [voitures,     setVoitures]     = useState([])
-  const [selectedCar,  setSelectedCar]  = useState(null)
-  const [loading,      setLoading]      = useState(true)
-  const [modal,        setModal]        = useState(null)
-  const [deleting,     setDeleting]     = useState(null)
-  const [saving,       setSaving]       = useState(false)
+  const [voitures, setVoitures] = useState([])
+  const [selectedCar, setSelectedCar] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [modal, setModal] = useState(null)
+  const [deleting, setDeleting] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const load = () => {
     setLoading(true)
     Promise.all([voituresAPI.list()])
-      .then(([v]) => { 
+      .then(([v]) => {
         setVoitures(v.data)
         if (v.data.length > 0) {
           setSelectedCar(v.data[0])
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false))
   }
   useEffect(load, [])
@@ -136,7 +136,7 @@ export default function MaintenancePage() {
     if (!selectedCar) return
     maintenanceAPI.list({ params: { car_id: selectedCar.id } })
       .then(m => setMaintenances(m.data))
-      .catch(() => {})
+      .catch(() => { })
   }
   useEffect(loadMaintenances, [selectedCar])
 
@@ -237,7 +237,7 @@ export default function MaintenancePage() {
         </div>
 
         {maintenances.length === 0 ? (
-          <EmptyState icon={<Wrench size={15}/>} title={t('common.no_data')} description={t('maintenance.desc_no_maintenance')} />
+          <EmptyState icon={<Wrench size={15} />} title={t('common.no_data')} description={t('maintenance.desc_no_maintenance')} />
         ) : (
           <>
             {/* Desktop Table */}
