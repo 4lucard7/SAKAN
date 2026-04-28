@@ -331,7 +331,8 @@ class GenerateNotifications extends Command
      */
     private function notifExiste(int $userId, string $type, int $refId, string $refType, string $tier): bool
     {
-        $exists = Notification::where('user_id', $userId)
+        $exists = Notification::withTrashed()
+            ->where('user_id', $userId)
             ->where('type', $type)
             ->where('reference_id', $refId)
             ->where('reference_type', $refType)
