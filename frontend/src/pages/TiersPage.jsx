@@ -12,7 +12,7 @@ function TierForm({ initial = {}, onSave, loading }) {
   const [form, setForm] = useState({ name: '', type: '', contact: '', ...initial })
   const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 " >
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col" >
       <Field label={t('common.name')} required>
         <input name="name" required value={form.name} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('tiers.form_name')} />
       </Field>
@@ -88,7 +88,7 @@ export default function TiersPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-6 mt-5">
+    <div className="fade-in flex flex-col gap-20">
       <PageHeader
         title={t('tiers.title')}
         action={
