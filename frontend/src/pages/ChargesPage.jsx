@@ -54,7 +54,7 @@ function ChargeForm({ initial = {}, onSave, loading }) {
     onSave({ ...form, jour_echeance: Number(form.jour_echeance) })
   }
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 ">
       <Field label={t('charges.label')} required>
         <input name="libelle" required value={form.libelle} onChange={h}
           className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('charges.placeholder_libelle')} />
@@ -73,25 +73,27 @@ function ChargeForm({ initial = {}, onSave, loading }) {
             value={form.montant} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
         </Field>
       </div>
-      <Field label={t('charges.due_day')} required>
-        <input name="jour_echeance_date" type="date" required
-          value={form.jour_echeance_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-      </Field>
-      <Field label={t('common.status')}>
-        <select name="statut" value={form.statut} onChange={h}
-          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-          <option value="en_attente">{t('status.en_attente')}</option>
-          <option value="payee">{t('status.payee')}</option>
-          <option value="en_retard">{t('status.en_retard')}</option>
-        </select>
-      </Field>
-      <Field label="Priorité">
-        <select name="priority" value={form.priority} onChange={h}
-          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-          <option value="normal">Normal</option>
-          <option value="important">Important</option>
-        </select>
-      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Field label={t('charges.due_day')} required>
+          <input name="jour_echeance_date" type="date" required
+            value={form.jour_echeance_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+        </Field>
+        <Field label={t('common.status')}>
+          <select name="statut" value={form.statut} onChange={h}
+            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+            <option value="en_attente">{t('status.en_attente')}</option>
+            <option value="payee">{t('status.payee')}</option>
+            <option value="en_retard">{t('status.en_retard')}</option>
+          </select>
+        </Field>
+        <Field label="Priorité">
+          <select name="priority" value={form.priority} onChange={h}
+            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+            <option value="normal">Normal</option>
+            <option value="important">Important</option>
+          </select>
+        </Field>
+      </div>
       <div className="flex justify-end pt-2">
         <button type="submit" disabled={loading} className="btn-primary">
           {loading ? t('common.loading') : t('common.save')}
@@ -313,14 +315,6 @@ export default function ChargesPage() {
   }, {})
   const sortedGroups = Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a))
 
-  const updateStatut = async (id, statut) => {
-    try {
-      await chargesAPI.updateStatut(id, statut)
-      setCharges(prev => prev.map(c => c.id === id ? { ...c, statut } : c))
-      toast.success(t('common.save'))
-    } catch { toast.error('Error') }
-  }
-
   const save = async (form) => {
     setSaving(true)
     try {
@@ -362,7 +356,7 @@ export default function ChargesPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-6">
+    <div className="fade-in flex flex-col gap-10">
       <PageHeader
         title={t('charges.title')}
         subtitle={t('charges.subtitle')}

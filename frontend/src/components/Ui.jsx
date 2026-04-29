@@ -41,7 +41,7 @@ export const Modal = ({ open, onClose, title, size = 'md', children }) => {
             <X size={20} />
           </button>
         </div>
-        <div className="p-6 max-h-[70vh] overflow-y-auto">{children}</div>
+        <div className="p-6 max-h-[85vh] overflow-y-auto">{children}</div>
       </div>
     </div>
   );
