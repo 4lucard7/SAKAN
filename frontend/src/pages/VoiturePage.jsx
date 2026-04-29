@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { voituresAPI } from '../services/api'
 import { Modal, ConfirmDialog, PageHeader, Spinner, Field } from '../components/Ui'
-import { Plus, Pencil, Trash2, Car, Gauge, Shield, AlertTriangle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Car, Gauge, Shield, AlertTriangle, Wrench } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
+import SelectedVehicleCard from '../components/SelectedVehicleCard'
+import { maintenanceAPI } from '../services/api'
 
 function VoitureForm({ initial = {}, onSave, loading }) {
   const { t } = useTranslation()
@@ -122,6 +124,7 @@ export default function VoiturePage() {
   const [modal, setModal] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [maintenances, setMaintenances] = useState([])
 
   const formatDate = (value) => {
     return value ? new Date(value).toLocaleDateString(i18n.language) : ''
@@ -138,6 +141,29 @@ export default function VoiturePage() {
   }
 
   useEffect(load, [])
+
+  useEffect(() => {
+    if (selected) {
+      maintenanceAPI.list({ params: { car_id: selected.id } })
+        .then(r => setMaintenances(r.data))
+        .catch(() => setMaintenances([]))
+    } else {
+      setMaintenances([])
+    }
+  }, [selected])
+
+  const handleAction = (type, data) => {
+    if (type === 'edit') setModal({ voiture: data })
+    if (type === 'create') setModal('create')
+    if (type === 'updateMileage') setModal({ voiture: data })
+    if (type === 'addMaintenance') {
+      // Navigate to maintenance page or show a toast
+      toast.success(t('maintenance.add') + ' (Coming Soon shortcut)')
+    }
+    if (type === 'renewInsurance') {
+      setModal({ voiture: data })
+    }
+  }
 
   const save = async (form) => {
     setSaving(true)
@@ -245,39 +271,13 @@ export default function VoiturePage() {
             ))}
           </div>
 
-          {selected && (
-            <div className="card rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-3xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-                  <Car size={24} className="text-sakan-blue dark:text-sakan" />
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">{t('vehicle.selected_car')}</p>
-                  <p className="text-2xl font-semibold text-slate-900 dark:text-white">{selected.car_name}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="rounded-3xl bg-gray-50 dark:bg-slate-900 p-4">
-                  <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">{t('vehicle.current_km')}</p>
-                  <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{formatKm(selected.current_km)} km</p>
-                </div>
-                <div className="grid grid-cols-1 gap-3">
-                  {[
-                    { label: t('vehicle.doc_assurance'), value: formatDate(selected.assurance_expiry) },
-                    { label: t('vehicle.doc_vignette'), value: formatDate(selected.vignette_expiry) },
-                    { label: t('vehicle.doc_controle'), value: formatDate(selected.controle_technique_expiry) },
-                    { label: t('vehicle.doc_carte_grise'), value: formatDate(selected.carte_grise_expiry) },
-                  ].map(info => (
-                    <div key={info.label} className="rounded-3xl bg-gray-50 dark:bg-slate-900 p-4">
-                      <p className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">{info.label}</p>
-                      <p className="mt-1 text-sm font-medium text-slate-900 dark:text-white">{info.value || t('vehicle.no_document')}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          <div className="flex flex-col gap-6">
+            <SelectedVehicleCard 
+              vehicle={selected} 
+              maintenances={maintenances} 
+              onAction={handleAction} 
+            />
+          </div>
         </div>
       )}
 
