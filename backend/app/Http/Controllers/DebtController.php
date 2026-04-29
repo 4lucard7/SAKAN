@@ -125,8 +125,7 @@ class DebtController extends Controller
         );
 
         $debt->total_rembourse = $nouveauTotal;
-        $debt->recalculerReste();
-        $debt->statut = $debt->statut;
+        $debt->save();
 
         return response()->json($debt->load('tier'));
     }
