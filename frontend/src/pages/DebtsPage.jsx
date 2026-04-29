@@ -18,7 +18,7 @@ function DebtForm({ initial = {}, tiers, onSave, loading }) {
     setForm(f => ({ ...f, [name]: value }))
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 mt-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
       <Field label={t('common.tiers')} required>
         <Select name="tier_id" value={form.tier_id} onChange={h} required>
           <option value="">{t('debts.form_tier')}</option>
@@ -37,15 +37,17 @@ function DebtForm({ initial = {}, tiers, onSave, loading }) {
             value={form.total_prete} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
         </Field>
       </div>
-      <Field label={t('debts.due_date')}>
-        <input name="due_date" type="date" value={form.due_date || ''} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-      </Field>
-      <Field label="Priorité">
-        <select name="priority" value={form.priority} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-          <option value="normal">Normal</option>
-          <option value="important">Important</option>
-        </select>
-      </Field>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Field label={t('debts.due_date')}>
+          <input name="due_date" type="date" value={form.due_date || ''} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+        </Field>
+        <Field label="Priorité">
+          <select name="priority" value={form.priority} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+            <option value="normal">Normal</option>
+            <option value="important">Important</option>
+          </select>
+        </Field>
+      </div>
       <Field label={t('common.notes')}>
         <textarea name="notes" value={form.notes || ''} onChange={h}
           className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white resize-none h-20" placeholder={t('debts.form_notes')} />
@@ -63,7 +65,7 @@ function RemboursementForm({ debt, onSave, loading }) {
   const { t } = useTranslation()
   const [montant, setMontant] = useState('')
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(montant) }} className="flex flex-col gap-4 mt-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(montant) }} className="flex flex-col gap-4">
       <div className="bg-primary-50 dark:bg-primary-900/10 rounded-xl p-4 text-sm border border-primary-100 dark:border-primary-900/20">
         <div className="flex justify-between"><span className="text-gray-500 dark:text-slate-400">{t('debts.summary_prete')}</span><span className="font-semibold dark:text-white">{Number(debt.total_prete).toLocaleString()} MAD</span></div>
         <div className="flex justify-between mt-1"><span className="text-gray-500 dark:text-slate-400">{t('debts.summary_rembourse')}</span><span className="font-semibold text-green-600 dark:text-green-400">{Number(debt.total_rembourse).toLocaleString()} MAD</span></div>

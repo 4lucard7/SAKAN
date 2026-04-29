@@ -33,8 +33,8 @@ export const Spinner = ({ size = 24 }) => {
 export const Modal = ({ open, onClose, title, size = 'md', children }) => {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto py-8 px-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-${size} overflow-hidden animate-in zoom-in-95 duration-200 border border-transparent dark:border-white/10 my-auto`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-${size} overflow-hidden animate-in zoom-in-95 duration-200 border border-transparent dark:border-white/10`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
           <h3 className="font-display font-bold text-lg text-slate-800 dark:text-white">{title}</h3>
           <button onClick={onClose} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">

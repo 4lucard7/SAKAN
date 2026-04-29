@@ -33,19 +33,21 @@ function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
     setForm(f => ({ ...f, [name]: value }))
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4 mt-4">
-      <Field label={t('vehicle.car')} required>
-        <select name="car_id" required value={form.car_id} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-          {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
-        </select>
-      </Field>
-      <Field label={t('maintenance.part_name')} required>
-        <input list="part_names" name="part_name" required value={form.part_name} onChange={h}
-          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Vidange, Pneus, Freins..." />
-        <datalist id="part_names">
-          {partNames.map(part => <option key={part} value={part} />)}
-        </datalist>
-      </Field>
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Field label={t('vehicle.car')} required>
+          <select name="car_id" required value={form.car_id} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+            {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
+          </select>
+        </Field>
+        <Field label={t('maintenance.part_name')} required>
+          <input list="part_names" name="part_name" required value={form.part_name} onChange={h}
+            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Vidange, Pneus, Freins..." />
+          <datalist id="part_names">
+            {partNames.map(part => <option key={part} value={part} />)}
+          </datalist>
+        </Field>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Field label={t('vehicle.current_km')} required>
           <input name="kilometrage_actuel" type="number" min="0" required
@@ -66,7 +68,7 @@ function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
             value={form.duration} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="6" />
         </Field>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Field label={`${t('maintenance.cost')} (MAD)`}>
           <input name="cost" type="number" min="0" step="0.01"
             value={form.cost} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
