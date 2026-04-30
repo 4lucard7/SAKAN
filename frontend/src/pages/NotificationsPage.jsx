@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { notificationsAPI } from '../services/api'
 import echo from '../services/echo'
 import { PageHeader, EmptyState, Spinner } from '../components/Ui'
-import { Bell, CheckCheck, Trash2 } from 'lucide-react'
+import { Bell, CheckCheck, Trash2, Check, Info } from 'lucide-react'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
@@ -42,38 +42,62 @@ function NotifCard({ notif, onToggleRead, onDelete, t }) {
 
   return (
     <div className={clsx(
-      'group flex items-start gap-4 rounded-[2rem] border bg-white dark:bg-slate-900 p-5 transition-all duration-300 hover:shadow-hover hover:-translate-y-0.5',
+      'group relative flex items-start gap-4 rounded-3xl p-5',
       notif.is_read
-        ? 'border-slate-100 dark:border-white/5 opacity-80 hover:opacity-100'
-        : clsx('border-l-4', borderColor, 'border-t border-r border-b border-slate-100 dark:border-white/10 shadow-sm shadow-blue-500/5')
+        ? 'bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 opacity-70 grayscale-[20%]'
+        : 'bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-blue-100 dark:border-sakan/30 shadow-md shadow-blue-500/5 ring-1 ring-black/5 dark:ring-white/5'
     )}>
-      <div className={clsx('w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0', typeColor)}>
-        <Bell size={20} />
+      {/* Liseré indicateur pour les notifications non lues */}
+      {!notif.is_read && (
+        <div className={clsx('absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1/2 rounded-r-full', typeColor.split(' ')[0])} />
+      )}
+
+      <div className={clsx('w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm border border-white/50 dark:border-white/10', typeColor)}>
+        <Bell size={20} className={!notif.is_read ? 'animate-pulse' : ''} />
       </div>
+      
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-          <span className={clsx('text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg', typeColor)}>
+        <div className="flex items-center gap-3 mb-2 flex-wrap">
+          <span className={clsx('text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border', typeColor, 'border-current/20')}>
             {t(`notifications.types.${notif.type}`)}
           </span>
           {notif.is_required && (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-              {t('notifications.important')}
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/30 flex items-center gap-1">
+              <Info size={12} /> {t('notifications.important')}
             </span>
           )}
           {!notif.is_read && (
-            <span className="flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-sakan-blue opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-sakan-blue"></span>
+            <span className="flex h-2.5 w-2.5 ml-1">
+              <span className="animate-ping absolute inline-flex h-2.5 w-2.5 rounded-full bg-sakan-blue opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sakan-blue"></span>
             </span>
           )}
-          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 ml-auto">{timeAgo(notif.created_at, t)}</span>
+          <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 ml-auto">{timeAgo(notif.created_at, t)}</span>
         </div>
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed mb-3">{notif.message}</p>
-        <div className="flex items-center gap-4 border-t border-slate-50 dark:border-slate-800/50 pt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => onToggleRead(notif.id)} className="text-xs font-bold text-sakan-blue hover:underline">
+        
+        <p className={clsx('text-sm leading-relaxed mb-4', notif.is_read ? 'text-slate-600 dark:text-slate-400 font-medium' : 'text-slate-800 dark:text-slate-200 font-semibold')}>
+          {notif.message}
+        </p>
+        
+        <div className="flex items-center gap-2 mt-auto border-t border-slate-50 dark:border-slate-800/50 pt-3">
+          <button 
+            onClick={() => onToggleRead(notif.id)} 
+            className={clsx(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border',
+              notif.is_read 
+                ? 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 dark:hover:bg-slate-700' 
+                : 'bg-blue-50 text-sakan-blue border-blue-200 hover:bg-blue-100 dark:bg-sakan/10 dark:text-sakan dark:border-sakan/30 dark:hover:bg-sakan/20'
+            )}
+          >
+            {notif.is_read ? <Check size={14} /> : <CheckCheck size={14} />}
             {notif.is_read ? t('notifications.mark_unread') : t('notifications.mark_read')}
           </button>
-          <button onClick={() => onDelete(notif.id)} className="text-xs font-bold text-red-400 hover:underline">
+          
+          <button 
+            onClick={() => onDelete(notif.id)} 
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 dark:bg-red-500/10 dark:border-red-500/30 dark:hover:bg-red-500/20 transition-all"
+          >
+            <Trash2 size={14} />
             {t('notifications.remove')}
           </button>
         </div>
