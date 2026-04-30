@@ -207,7 +207,7 @@ export default function MaintenancePage() {
   )
 
   return (
-    <div className="fade-in flex flex-col gap-6">
+    <div className="fade-in flex flex-col gap-10">
       <PageHeader
         title={t('maintenance.title')}
         subtitle={t('vehicle.subtitle')}

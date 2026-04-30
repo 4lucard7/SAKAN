@@ -372,7 +372,7 @@ export default function ChargesPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-16 ">
+    <div className="fade-in flex flex-col gap-6 ">
       <PageHeader
         title={t('charges.title')}
         subtitle={t('charges.subtitle')}
