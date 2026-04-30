@@ -13,99 +13,104 @@ function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
   const [form, setForm] = useState({
     car_id: initial?.car_id || voitures[0]?.id || '',
     part_name: initial?.part_name || '',
-    kilometrage_actuel: initial?.kilometrage_actuel || '',
-    limit_km: initial?.limit_km || '',
-    last_change_date: initial?.last_change_date || '',
-    duration: initial?.duration || '',
-    cost: initial?.cost || '',
-    notes: initial?.notes || '',
-    priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal')
+    car_id: '', part_name: '', kilometrage_actuel: '', limit_km: '',
+    last_change_date: '', duration: '', cost: '', notes: '', priority: 'normal',
+    ...initial,
   })
 
   useEffect(() => {
-    if (!form.car_id && voitures[0]?.id) {
-      setForm(f => ({ ...f, car_id: voitures[0].id }))
-    }
-  }, [voitures])
+    setForm({
+      car_id: '', part_name: '', kilometrage_actuel: '', limit_km: '',
+      last_change_date: '', duration: '', cost: '', notes: '', priority: 'normal',
+      ...initial,
+    })
+  }, [initial])
 
   const h = e => {
     const { name, value } = e.target
     setForm(f => ({ ...f, [name]: value }))
   }
+
+  const inputCls = "w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sakan-blue/40 focus:border-sakan-blue transition-all text-sm"
+  const labelCls = "text-sm font-semibold text-slate-700 dark:text-slate-300"
+
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-8">
-      <div>
-        <SectionHeader title={t('common.info')} icon={Info} />
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col">
+      <div className="flex flex-col gap-4 pb-2">
+
+        {/* Row 1 : Voiture + Pièce */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t('vehicle.car')} required>
-            <Select name="car_id" required value={form.car_id} onChange={h}>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>{t('vehicle.car')} <span className="text-red-500">*</span></label>
+            <select name="car_id" required value={form.car_id} onChange={h} className={inputCls}>
+              <option value="">Sélectionner une voiture</option>
               {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
-            </Select>
-          </Field>
-          <Field label={t('maintenance.part_name')} required>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>{t('maintenance.part_name')} <span className="text-red-500">*</span></label>
             <input list="part_names" name="part_name" required value={form.part_name} onChange={h}
-              className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Vidange, Pneus, Freins..." />
+              className={inputCls} placeholder="Ex: Vidange, Pneus..." />
             <datalist id="part_names">
               {partNames.map(part => <option key={part} value={part} />)}
             </datalist>
-          </Field>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <SectionHeader title={t('vehicle.current_km')} icon={Gauge} />
+        {/* Row 2 : KM actuel + Limite KM */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t('vehicle.current_km')} required>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>{t('vehicle.current_km')} <span className="text-red-500">*</span></label>
             <input name="kilometrage_actuel" type="number" min="0" required
-              value={form.kilometrage_actuel} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="45200" />
-          </Field>
-          <Field label={t('maintenance.interval')}>
+              value={form.kilometrage_actuel} onChange={h} className={inputCls} placeholder="45200" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>{t('maintenance.interval')}</label>
             <input name="limit_km" type="number" min="0"
-              value={form.limit_km} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="10000" />
-          </Field>
+              value={form.limit_km} onChange={h} className={inputCls} placeholder="Ex: 10000" />
+          </div>
         </div>
-      </div>
 
-      <div>
-        <SectionHeader title={t('common.scheduling')} icon={Calendar} />
+        {/* Row 3 : Date + Durée */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t('maintenance.last_done').split('/')[0]} required>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>{t('maintenance.last_done').split('/')[0]} <span className="text-red-500">*</span></label>
             <input name="last_change_date" type="date" required
-              value={form.last_change_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-          </Field>
-          <Field label={t('maintenance.duration_months')}>
+              value={form.last_change_date} onChange={h} className={inputCls} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>{t('maintenance.duration_months')}</label>
             <input name="duration" type="number" min="1" max="120"
-              value={form.duration} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="6" />
-          </Field>
+              value={form.duration} onChange={h} className={inputCls} placeholder="Ex: 6" />
+          </div>
         </div>
-      </div>
 
-      <div>
-        <SectionHeader title={t('common.details')} icon={DollarSign} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <Field label={`${t('maintenance.cost')} (MAD)`}>
+        {/* Row 4 : Coût + Priorité */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>{t('maintenance.cost')} (MAD)</label>
             <input name="cost" type="number" min="0" step="0.01"
-              value={form.cost} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
-          </Field>
-          <Field label="Priorité">
-            <PriorityPills 
-              value={form.priority} 
-              onChange={val => setForm(f => ({ ...f, priority: val }))}
-              options={[
-                { label: 'Normal', value: 'normal' },
-                { label: 'Important', value: 'important', color: 'red' }
-              ]}
-            />
-          </Field>
+              value={form.cost} onChange={h} className={inputCls} placeholder="0.00" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className={labelCls}>Priorité</label>
+            <select name="priority" value={form.priority} onChange={h} className={inputCls}>
+              <option value="normal">Normal</option>
+              <option value="important">Important</option>
+            </select>
+          </div>
         </div>
-        <Field label={t('common.notes')}>
+
+        {/* Notes */}
+        <div className="flex flex-col gap-1.5">
+          <label className={labelCls}>{t('common.notes')}</label>
           <textarea name="notes" value={form.notes} onChange={h}
-            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white resize-none h-24" placeholder={t('common.optional')} />
-        </Field>
+            className={`${inputCls} resize-none h-20`} placeholder={t('common.optional')} />
+        </div>
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button type="submit" disabled={loading} className="btn-primary px-10 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20 transform active:scale-95 transition-all">
+      <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800 mt-2">
+        <button type="submit" disabled={loading} className="btn-primary">
           {loading ? t('common.loading') : t('common.save')}
         </button>
       </div>

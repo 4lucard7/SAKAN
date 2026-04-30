@@ -53,63 +53,65 @@ function ChargeForm({ initial = {}, onSave, loading }) {
     e.preventDefault()
     onSave({ ...form, jour_echeance: Number(form.jour_echeance) })
   }
+  const inputCls = "w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sakan-blue/40 focus:border-sakan-blue transition-all text-sm"
+  const labelCls = "text-sm font-semibold text-slate-700 dark:text-slate-300"
+
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-      <div>
-        <SectionHeader title={t('common.info')} icon={Info} />
-        <Field label={t('charges.label')} required>
-          <input name="libelle" required value={form.libelle} onChange={h}
-            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('charges.placeholder_libelle')} />
-        </Field>
+    <form onSubmit={handleSubmit} className="flex flex-col ">
+
+      {/* Libellé */}
+      <div className="flex flex-col gap-1.5">
+        <label className={labelCls}>{t('charges.label')} <span className="text-red-500">*</span></label>
+        <input name="libelle" required value={form.libelle} onChange={h}
+          className={inputCls} placeholder={t('charges.placeholder_libelle')} />
       </div>
 
-      <div>
-        <SectionHeader title={t('common.details')} icon={DollarSign} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Field label={t('charges.category')}>
-            <Select name="categorie" value={form.categorie} onChange={h}>
-              <option value="">{t('common.loading')}</option>
-              {['logement', 'internet', 'transport', 'alimentation', 'santé', 'éducation', 'loisirs', 'autre'].map(c => (
-                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-              ))}
-            </Select>
-          </Field>
-          <Field label={`${t('common.amount')} (MAD)`} required>
-            <input name="montant" type="number" min="0.01" step="0.01" required
-              value={form.montant} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
-          </Field>
+      {/* Catégorie + Montant */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className={labelCls}>{t('charges.category')}</label>
+          <select name="categorie" value={form.categorie} onChange={h} className={inputCls}>
+            <option value="">{t('common.loading')}</option>
+            {['logement', 'internet', 'transport', 'alimentation', 'santé', 'éducation', 'loisirs', 'autre'].map(c => (
+              <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className={labelCls}>{t('common.amount')} (MAD) <span className="text-red-500">*</span></label>
+          <input name="montant" type="number" min="0.01" step="0.01" required
+            value={form.montant} onChange={h} className={inputCls} placeholder="0.00" />
         </div>
       </div>
 
-      <div>
-        <SectionHeader title={t('common.scheduling')} icon={Calendar} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <Field label={t('charges.due_day')} required>
-            <input name="jour_echeance_date" type="date" required
-              value={form.jour_echeance_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-          </Field>
-          <Field label={t('common.status')}>
-            <Select name="statut" value={form.statut} onChange={h}>
-              <option value="en_attente">{t('status.en_attente')}</option>
-              <option value="payee">{t('status.payee')}</option>
-              <option value="en_retard">{t('status.en_retard')}</option>
-            </Select>
-          </Field>
+      {/* Date échéance + Statut */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className={labelCls}>{t('charges.due_day')} <span className="text-red-500">*</span></label>
+          <input name="jour_echeance_date" type="date" required
+            value={form.jour_echeance_date} onChange={h} className={inputCls} />
         </div>
-        <Field label="Priorité">
-          <PriorityPills 
-            value={form.priority} 
-            onChange={val => setForm(f => ({ ...f, priority: val }))}
-            options={[
-              { label: 'Normal', value: 'normal' },
-              { label: 'Important', value: 'important', color: 'red' }
-            ]}
-          />
-        </Field>
+        <div className="flex flex-col gap-1.5">
+          <label className={labelCls}>{t('common.status')}</label>
+          <select name="statut" value={form.statut} onChange={h} className={inputCls}>
+            <option value="en_attente">{t('status.en_attente')}</option>
+            <option value="payee">{t('status.payee')}</option>
+            <option value="en_retard">{t('status.en_retard')}</option>
+          </select>
+        </div>
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button type="submit" disabled={loading} className="btn-primary px-10 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20 transform active:scale-95 transition-all">
+      {/* Priorité */}
+      <div className="flex flex-col gap-1.5">
+        <label className={labelCls}>Priorité</label>
+        <select name="priority" value={form.priority} onChange={h} className={inputCls}>
+          <option value="normal">Normal</option>
+          <option value="important">Important</option>
+        </select>
+      </div>
+
+      <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800 mt-1">
+        <button type="submit" disabled={loading} className="btn-primary">
           {loading ? t('common.loading') : t('common.save')}
         </button>
       </div>
@@ -370,7 +372,7 @@ export default function ChargesPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-10">
+    <div className="fade-in flex flex-col gap-16 ">
       <PageHeader
         title={t('charges.title')}
         subtitle={t('charges.subtitle')}

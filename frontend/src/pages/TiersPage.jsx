@@ -112,10 +112,10 @@ export default function TiersPage() {
         {loading ? (
           <div className="flex justify-center py-20"><Spinner size={40} /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState 
-            icon={<Users size={64} className="opacity-20" />} 
-            title={t('tiers.no_tiers')} 
-            description={t('tiers.desc_no_tiers')} 
+          <EmptyState
+            icon={<Users size={64} className="opacity-20" />}
+            title={t('tiers.no_tiers')}
+            description={t('tiers.desc_no_tiers')}
             action={
               <button className="btn-primary px-8 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20" onClick={() => setModal('create')}>
                 <Plus size={20} className="mr-2" /> {t('tiers.add_tier')}
@@ -203,12 +203,10 @@ export default function TiersPage() {
         )}
       </div>
 
-      <div className="mt-5">
-        <Modal open={!!modal} onClose={() => setModal(null)}
-          title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
-          <TierForm initial={modal?.tier} onSave={save} loading={saving} />
-        </Modal>
-      </div>
+      <Modal open={!!modal} onClose={() => setModal(null)}
+        title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
+        <TierForm initial={modal?.tier} onSave={save} loading={saving} />
+      </Modal>
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)}
         onConfirm={del} loading={saving}
