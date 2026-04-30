@@ -88,8 +88,8 @@ function DocBadge({ label, expiry, statut }) {
 
   const color = statut?.includes('expire') ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
     : statut?.includes('j7') ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-    : statut?.includes('j30') ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-    : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+      : statut?.includes('j30') ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+        : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
 
   return (
     <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-3 flex items-center justify-between border border-transparent dark:border-slate-800">
@@ -124,9 +124,6 @@ export default function VoiturePage() {
   const [saving, setSaving] = useState(false)
   const [maintenances, setMaintenances] = useState([])
 
-  const formatDate = (value) => {
-    return value ? new Date(value).toLocaleDateString(i18n.language) : ''
-  }
 
   const load = () => {
     setLoading(true)
@@ -232,11 +229,10 @@ export default function VoiturePage() {
                 <div
                   key={car.id}
                   onClick={() => setSelected(car)}
-                  className={`group relative card p-6 rounded-[2.5rem] border-2 transition-all duration-300 cursor-pointer overflow-hidden ${
-                    isActive
+                  className={`group relative card p-6 rounded-[2.5rem] border-2 transition-all duration-300 cursor-pointer overflow-hidden ${isActive
                       ? 'border-[#2196F3] bg-[#2196F3]/5 dark:bg-[#2196F3]/10 shadow-xl shadow-[#2196F3]/10'
                       : 'border-transparent bg-white dark:bg-slate-900 shadow-card hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-md'
-                  }`}
+                    }`}
                 >
                   {/* Header: nom + icône voiture */}
                   <div className="flex items-start justify-between gap-3 mb-5">
@@ -244,9 +240,8 @@ export default function VoiturePage() {
                       <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1">{t('vehicle.name')}</p>
                       <h3 className="font-display font-black text-xl text-slate-900 dark:text-white">{car.car_name}</h3>
                     </div>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                      isActive ? 'bg-[#2196F3] text-white' : 'bg-slate-100 dark:bg-slate-800 text-[#2196F3]'
-                    }`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${isActive ? 'bg-[#2196F3] text-white' : 'bg-slate-100 dark:bg-slate-800 text-[#2196F3]'
+                      }`}>
                       <Car size={22} />
                     </div>
                   </div>
@@ -262,9 +257,8 @@ export default function VoiturePage() {
                   {/* Status docs + actions */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${
-                        isActive ? 'bg-[#2196F3]/10 text-[#2196F3]' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                      }`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${isActive ? 'bg-[#2196F3]/10 text-[#2196F3]' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        }`}>
                         {isActive ? 'Sélectionné' : 'Véhicule'}
                       </span>
                       <div className="flex items-center gap-1">
