@@ -14,33 +14,43 @@ function DebtForm({ initial = {}, tiers, onSave, loading }) {
   })
   const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col">
-      <Field label={t('common.tiers')} required>
-        <Select name="tier_id" value={form.tier_id} onChange={h} required>
-          <option value="">{t('debts.form_tier')}</option>
-          {tiers.map(t_item => <option key={t_item.id} value={t_item.id}>{t_item.name}</option>)}
-        </Select>
-      </Field>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label={t('common.type')} required>
-          <Select name="type" value={form.type} onChange={h}>
-            <option value="outflow">{t('status.dette')}</option>
-            <option value="inflow">{t('status.creance')}</option>
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col ">
+      <div className="flex flex-col gap-4 max-h-[60vh] overflow-y-auto pr-2 pb-2">
+        <Field label={t('common.tiers')} required>
+          <Select name="tier_id" value={form.tier_id} onChange={h} required>
+            <option value="">{t('debts.form_tier')}</option>
+            {tiers.map(t_item => <option key={t_item.id} value={t_item.id}>{t_item.name}</option>)}
           </Select>
         </Field>
-        <Field label={`${t('common.amount')} (MAD)`} required>
-          <input name="total_prete" type="number" step="0.01" min="0.01" required
-            value={form.total_prete} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label={t('common.type')} required>
+            <Select name="type" value={form.type} onChange={h}>
+              <option value="outflow">{t('status.dette')}</option>
+              <option value="inflow">{t('status.creance')}</option>
+            </Select>
+          </Field>
+          <Field label={`${t('common.amount')} (MAD)`} required>
+            <input name="total_prete" type="number" step="0.01" min="0.01" required
+              value={form.total_prete} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Field label={t('debts.due_date')}>
+            <input name="due_date" type="date" value={form.due_date || ''} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+          </Field>
+          <Field label="Priorité">
+            <select name="priority" value={form.priority} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
+              <option value="normal">Normal</option>
+              <option value="important">Important</option>
+            </select>
+          </Field>
+        </div>
+        <Field label={t('common.notes')}>
+          <textarea name="notes" value={form.notes || ''} onChange={h}
+            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white resize-none h-20" placeholder={t('debts.form_notes')} />
         </Field>
       </div>
-      <Field label={t('debts.due_date')}>
-        <input name="due_date" type="date" value={form.due_date || ''} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-      </Field>
-      <Field label={t('common.notes')}>
-        <textarea name="notes" value={form.notes || ''} onChange={h}
-          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white resize-none h-24" placeholder={t('debts.form_notes')} />
-      </Field>
-      <div className="flex justify-end pt-2">
+      <div className="flex justify-end pt-4 mt-2 border-t border-gray-100 dark:border-slate-800">
         <button type="submit" disabled={loading} className="btn-primary">
           {loading ? t('common.loading') : t('common.save')}
         </button>
@@ -138,7 +148,7 @@ export default function DebtsPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-6">
+    <div className="fade-in flex flex-col gap-4">
       <PageHeader
         title={t('debts.title')}
         action={

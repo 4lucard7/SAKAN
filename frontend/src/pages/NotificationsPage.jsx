@@ -107,7 +107,10 @@ export default function NotificationsPage() {
   useEffect(() => {
     load(tab === 'unread' ? { non_lues: true } : {})
 
-    const handleRefresh = () => load(tab === 'unread' ? { non_lues: true } : {})
+    const handleRefresh = (e) => {
+      if (e.detail?.source === 'page') return;
+      load(tab === 'unread' ? { non_lues: true } : {})
+    }
     window.addEventListener('notifications:refresh', handleRefresh)
     return () => {
       window.removeEventListener('notifications:refresh', handleRefresh)
@@ -116,7 +119,7 @@ export default function NotificationsPage() {
 
   // ── Actions ─────────────────────────────────────────────────────────────────
   const dispatchRefresh = () => {
-    window.dispatchEvent(new CustomEvent('notifications:refresh'))
+    window.dispatchEvent(new CustomEvent('notifications:refresh', { detail: { source: 'page' } }))
   }
 
   const toggleRead = async (id) => {
