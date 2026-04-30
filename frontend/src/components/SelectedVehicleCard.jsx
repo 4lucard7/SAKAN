@@ -174,7 +174,7 @@ const SelectedVehicleCard = ({ vehicle, maintenances = [], onAction }) => {
                   onClick={() => onAction('renewInsurance', vehicle)}
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all active:scale-95"
                 >
-                  Renew Now
+                  {t('vehicle.renew_now')}
                 </button>
               </div>
             </motion.div>
@@ -212,9 +212,9 @@ const SelectedVehicleCard = ({ vehicle, maintenances = [], onAction }) => {
                       doc.status === 'expiring' ? 'text-orange-500' :
                       'text-red-500'
                     }`}>
-                      {doc.status === 'expired' ? t('alert_status.expire') : 
-                       doc.status === 'expiring' ? `${doc.diffDays}d left` : 
-                       'Valid'}
+                      {doc.status === 'expired' ? t('alert_status.expire') :
+                       doc.status === 'expiring' ? t('vehicle.days_left', { count: doc.diffDays }) :
+                       t('vehicle.doc_valid')}
                     </p>
                   </div>
                 )}
