@@ -88,7 +88,7 @@ export default function TiersPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-6">
+    <div className="fade-in flex flex-col gap-16">
       <PageHeader
         title={t('tiers.title')}
         action={
