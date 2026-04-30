@@ -9,16 +9,12 @@ function DebtForm({ initial = {}, tiers, onSave, loading }) {
   const { t } = useTranslation()
   const [form, setForm] = useState({
     tier_id: '', type: 'outflow', total_prete: '', due_date: '', notes: '',
-    priority: initial?.priority ?? (initial?.is_required ? 'important' : 'normal'),
     ...initial,
     tier_id: initial?.tier_id || initial?.tier?.id || '',
   })
-  const h = e => {
-    const { name, value } = e.target
-    setForm(f => ({ ...f, [name]: value }))
-  }
+  const h = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col">
       <Field label={t('common.tiers')} required>
         <Select name="tier_id" value={form.tier_id} onChange={h} required>
           <option value="">{t('debts.form_tier')}</option>
@@ -37,20 +33,12 @@ function DebtForm({ initial = {}, tiers, onSave, loading }) {
             value={form.total_prete} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
         </Field>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label={t('debts.due_date')}>
-          <input name="due_date" type="date" value={form.due_date || ''} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-        </Field>
-        <Field label="Priorité">
-          <select name="priority" value={form.priority} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-            <option value="normal">Normal</option>
-            <option value="important">Important</option>
-          </select>
-        </Field>
-      </div>
+      <Field label={t('debts.due_date')}>
+        <input name="due_date" type="date" value={form.due_date || ''} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+      </Field>
       <Field label={t('common.notes')}>
         <textarea name="notes" value={form.notes || ''} onChange={h}
-          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white resize-none h-20" placeholder={t('debts.form_notes')} />
+          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white resize-none h-24" placeholder={t('debts.form_notes')} />
       </Field>
       <div className="flex justify-end pt-2">
         <button type="submit" disabled={loading} className="btn-primary">
@@ -154,8 +142,8 @@ export default function DebtsPage() {
       <PageHeader
         title={t('debts.title')}
         action={
-          <button className="btn-primary" onClick={() => setModal('create')}>
-            <Plus size={16} /> {t('debts.add_debt')}
+          <button className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg shadow-sakan-blue/20 hover:scale-105 transition-all active:scale-95" onClick={() => setModal('create')}>
+            <Plus size={18} /> {t('debts.add_debt')}
           </button>
         }
       />
@@ -189,9 +177,18 @@ export default function DebtsPage() {
           <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('debts.all_transactions')}</h2>
         </div>
         {loading ? (
-          <div className="flex justify-center py-16"><Spinner /></div>
+          <div className="flex justify-center py-20"><Spinner size={40} /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon={<Wallet size={48} />} title={t('common.no_data')} description={t('debts.all_transactions')} />
+          <EmptyState 
+            icon={<Wallet size={64} className="opacity-20" />} 
+            title={t('common.no_data')} 
+            description={t('debts.all_transactions')} 
+            action={
+              <button className="btn-primary px-8 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20" onClick={() => setModal('create')}>
+                <Plus size={20} className="mr-2" /> {t('debts.add_debt')}
+              </button>
+            }
+          />
         ) : (
           <>
             {/* Desktop Table */}
@@ -204,7 +201,6 @@ export default function DebtsPage() {
                     <th className="py-3 px-6 text-left font-medium">{t('debts.total_prete')}</th>
                     <th className="py-3 px-6 text-left font-medium">{t('debts.total_rembourse')}</th>
                     <th className="py-3 px-6 text-left font-medium">{t('debts.reste')}</th>
-                    <th className="py-3 px-6 text-left font-medium">Priorité</th>
                     <th className="py-3 px-6 text-left font-medium">{t('debts.due_date')}</th>
                     <th className="py-3 px-6 text-left font-medium">{t('common.actions')}</th>
                   </tr>
@@ -226,11 +222,6 @@ export default function DebtsPage() {
                       <td className="py-3 px-6 font-semibold dark:text-white">{Number(d.total_prete).toLocaleString()} MAD</td>
                       <td className="py-3 px-6 text-green-600 dark:text-green-400 font-medium">{Number(d.total_rembourse).toLocaleString()} MAD</td>
                       <td className="py-3 px-6 font-bold text-sakan-blue dark:text-sakan">{Number(d.reste).toLocaleString()} MAD</td>
-                      <td className="py-3 px-6">
-                        <StatutBadge color={(d.priority === 'important' || d.is_required) ? 'red' : 'gray'}>
-                          {(d.priority || (d.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
-                        </StatutBadge>
-                      </td>
                       <td className="py-3 px-6 text-gray-400 dark:text-slate-500 text-xs">
                         {d.due_date ? new Date(d.due_date).toLocaleDateString(i18n.language) : '—'}
                       </td>
@@ -287,26 +278,19 @@ export default function DebtsPage() {
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <div>
-                        <span className="text-gray-500 dark:text-slate-400 mr-2">Priorité:</span>
-                        <StatutBadge color={(d.priority === 'important' || d.is_required) ? 'red' : 'gray'}>
-                          {(d.priority || (d.is_required ? 'important' : 'normal')) === 'important' ? 'Important' : 'Normal'}
-                        </StatutBadge>
-                      </div>
                       <span className="text-gray-400 dark:text-slate-500">
                         {d.due_date ? new Date(d.due_date).toLocaleDateString(i18n.language) : '—'}
                       </span>
-                    </div>
-                    <div className="flex items-center gap-1 pt-2 border-t border-gray-100 dark:border-slate-800">
-                      <button onClick={() => setModal({ debt: d })}
-                        className="flex-1 p-2 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors flex items-center justify-center gap-1">
-                        <Pencil size={13} /> <span className="text-xs">{t('common.edit')}</span>
-                      </button>
-
-                      <button onClick={() => setDeleting(d)}
-                        className="flex-1 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors flex items-center justify-center gap-1">
-                        <Trash2 size={13} /> <span className="text-xs">{t('common.delete')}</span>
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => setModal({ debt: d })}
+                          className="p-1.5 rounded-lg hover:bg-primary-100 dark:hover:bg-slate-800 text-gray-400 hover:text-sakan-blue dark:hover:text-sakan transition-colors">
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => setDeleting(d)}
+                          className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

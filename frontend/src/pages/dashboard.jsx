@@ -2,17 +2,29 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { dashboardAPI, tiersAPI, voituresAPI } from '../services/api'
 import { Spinner, Badge } from '../components/Ui'
-import { Car, AlertTriangle, ChevronRight, Wrench, Shield, ChevronDown } from 'lucide-react'
+import * as Lucide from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 const COLORS = ['#25D1F4', '#00b4d8', '#0096c7', '#0077b6', '#023e8a', '#90e0ef']
 
-function StatCard({ label, value, color, icon: Icon, sub }) {
+function StatCard({ label, value, color, icon: Icon, sub, trend }) {
   return (
-    <div className={`rounded-2xl p-6 flex flex-col gap-2 shadow-sm border border-transparent dark:border-white/5 transition-all hover:scale-[1.02] ${color}`}>
-      <p className="text-xs font-semibold uppercase tracking-widest opacity-70">{label}</p>
-      <p className="font-display font-bold text-3xl">{value}</p>
-      {sub && <p className="text-xs opacity-60">{sub}</p>}
+    <div className={`group rounded-3xl p-6 flex flex-col gap-3 shadow-card border border-transparent dark:border-white/5 transition-all duration-300 hover:shadow-hover hover:-translate-y-1 ${color}`}>
+      <div className="flex justify-between items-start">
+        <div className="p-2 bg-white/20 rounded-xl">
+          <Icon size={20} className="text-current opacity-90" />
+        </div>
+        {trend && (
+          <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-white/20">
+            {trend}
+          </span>
+        )}
+      </div>
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">{label}</p>
+        <p className="font-display font-black text-3xl">{value}</p>
+        {sub && <p className="text-[11px] font-medium mt-1 opacity-60">{sub}</p>}
+      </div>
     </div>
   )
 }
@@ -88,33 +100,66 @@ export default function Dashboard() {
     { label: t('status.overdue'),  value: charges.en_retard,   color: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' },
   ]
 
-  // const isDark = document.documentElement.classList.contains('dark')
-
   return (
-    <div className="fade-in flex flex-col gap-6">
-      <div>
-        <h1 className="font-display font-bold text-2xl text-gray-800 dark:text-white transition-colors">{t('dashboard.title')}</h1>
-        <p className="text-sm text-gray-400 dark:text-slate-500 mt-0.5">{t('dashboard.subtitle')}</p>
+    <div className="fade-in flex flex-col gap-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white transition-colors">{t('dashboard.title')}</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{t('dashboard.subtitle')}</p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate('/debts')} className="flex items-center gap-2 px-4 py-2.5 bg-sakan-blue text-white rounded-xl font-bold text-sm shadow-lg shadow-sakan-blue/20 hover:scale-105 transition-all active:scale-95">
+            <Lucide.Plus size={18} />
+            {t('common.debts')}
+          </button>
+          <button onClick={() => navigate('/charges')} className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-all active:scale-95">
+            <Lucide.PlusCircle size={18} />
+            {t('common.charges')}
+          </button>
+        </div>
       </div>
 
+      {/* Urgent Alert Banner */}
+      {(finances.en_retard > 0 || voiture.nb_alertes > 0) && (
+        <div className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20 rounded-[2rem] p-5 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+          <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0 text-red-600 dark:text-red-400">
+            <Lucide.AlertTriangle size={24} className="animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-black text-red-900 dark:text-red-200 uppercase tracking-wider">{t('dashboard.urgent_action_required')}</p>
+            <p className="text-sm text-red-700/80 dark:text-red-400/80 mt-0.5">
+              {finances.en_retard > 0 && `${finances.en_retard} ${t('dashboard.late_payments')}. `}
+              {voiture.nb_alertes > 0 && `${voiture.nb_alertes} ${t('dashboard.vehicle_alerts').toLowerCase()}.`}
+            </p>
+          </div>
+          <button onClick={() => navigate(voiture.nb_alertes > 0 ? '/voiture' : '/debts')} className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg shadow-red-600/20">
+            {t('common.view')}
+          </button>
+        </div>
+      )}
+
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           label={t('dashboard.total_debts')}
           value={`${finances.total_dettes.toLocaleString()} MAD`}
-          color="bg-primary-100 text-primary-800 dark:bg-blue-900/20 dark:text-blue-300"
+          color="bg-sakan-blue text-white"
+          icon={Lucide.Wallet}
           sub={`${finances.en_retard} ${t('dashboard.late')}`}
         />
         <StatCard
           label={t('dashboard.total_creances')}
           value={`${finances.total_creances.toLocaleString()} MAD`}
-          color="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300"
+          color="bg-slate-900 dark:bg-slate-800 text-white"
+          icon={Lucide.ArrowUpRight}
           sub={`${finances.echeances_j7} ${t('dashboard.due_j7')}`}
         />
         <StatCard
           label={t('dashboard.vehicle_alerts')}
           value={voiture.nb_alertes}
-          color="bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300"
+          color="bg-orange-500 text-white"
+          icon={Lucide.Bell}
           sub={voiture.enregistree ? t('dashboard.vehicle_registered') : t('dashboard.no_vehicle')}
         />
       </div>
@@ -127,7 +172,7 @@ export default function Dashboard() {
             <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('dashboard.recent_tiers')}</h2>
             <button onClick={() => navigate('/tiers')}
               className="text-xs text-sakan-blue dark:text-sakan font-medium hover:underline flex items-center gap-0.5">
-              {t('dashboard.manage_tiers')} <ChevronRight size={12} />
+              {t('dashboard.manage_tiers')} <Lucide.ChevronRight size={12} />
             </button>
           </div>
           <table className="w-full text-sm">
@@ -186,7 +231,7 @@ export default function Dashboard() {
             <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('vehicle.title')}</h2>
             <button onClick={() => navigate('/voiture')}
               className="text-xs text-sakan-blue dark:text-sakan font-medium hover:underline flex items-center gap-0.5">
-              {t('common.actions')} <ChevronRight size={12} />
+              {t('common.actions')} <Lucide.ChevronRight size={12} />
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -194,7 +239,7 @@ export default function Dashboard() {
               <div key={car.id} className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4 border border-gray-100 dark:border-slate-700 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
-                    <Car size={20} className="text-sakan-blue dark:text-sakan" />
+                    <Lucide.Car size={20} className="text-sakan-blue dark:text-sakan" />
                   </div>
                   <div>
                     <p className="font-medium text-gray-800 dark:text-white">{car.car_name}</p>
@@ -225,7 +270,7 @@ export default function Dashboard() {
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
                   </span>
                 )}
-                <AlertTriangle size={20} className="text-orange-500" />
+                <Lucide.AlertTriangle size={20} className="text-orange-500" />
               </div>
               <div>
                 <h2 className="font-display font-semibold text-gray-800 dark:text-white">{t('dashboard.vehicle_alerts')}</h2>
@@ -246,11 +291,11 @@ export default function Dashboard() {
                     <option key={car.id} value={car.id}>{car.car_name}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
+                <Lucide.ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 pointer-events-none" />
               </div>
               <button onClick={() => navigate('/voiture')}
                 className="text-xs text-sakan-blue dark:text-sakan font-medium hover:underline flex items-center gap-1 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 rounded-xl transition-colors whitespace-nowrap">
-                {t('common.actions')} <ChevronRight size={12} />
+                {t('common.actions')} <Lucide.ChevronRight size={12} />
               </button>
             </div>
           </div>
@@ -272,7 +317,7 @@ export default function Dashboard() {
                   <div key={i} className={`group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl p-4 border transition-all hover:shadow-md hover:-translate-y-0.5 ${bgColor}`}>
                     <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${iconBoxColor}`}>
-                        {a.type === 'maintenance' ? <Wrench size={22} /> : <Shield size={22} />}
+                        {a.type === 'maintenance' ? <Lucide.Wrench size={22} /> : <Lucide.Shield size={22} />}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -301,7 +346,7 @@ export default function Dashboard() {
           ) : (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <div className="w-14 h-14 bg-green-100 dark:bg-green-900/20 rounded-2xl flex items-center justify-center mb-3">
-                <Car size={24} className="text-green-500 dark:text-green-400" />
+                <Lucide.Car size={24} className="text-green-500 dark:text-green-400" />
               </div>
               <p className="text-sm font-medium text-gray-500 dark:text-slate-400">
                 {t('dashboard.no_alerts_for_car')}

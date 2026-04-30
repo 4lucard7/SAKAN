@@ -123,12 +123,13 @@ export default function Layout({ children }) {
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                  ? 'bg-[#2196F3]  text-dark font-bold shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white font-medium'
+                className={`group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 relative ${isActive
+                  ? 'bg-sakan-blue text-white font-bold shadow-md shadow-sakan-blue/20'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-900 dark:hover:text-white font-medium hover:scale-[1.02]'
                   }`}
               >
-                <Icon size={18} />
+                <div className={`absolute top-1/2 -translate-y-1/2 w-1 h-6 rounded-full bg-white transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-0'} ${i18n.language === 'ar' ? 'right-0' : 'left-0'}`} />
+                <Icon size={18} className={`${isActive ? 'scale-110' : 'group-hover:scale-110 transition-transform'}`} />
                 {item.label}
               </Link>
             );
@@ -150,7 +151,7 @@ export default function Layout({ children }) {
         </div>
       </aside>
 
-      {/* 💻 Main Content Area */}
+      {/*  Main Content Area */}
       <main className="flex-1 flex flex-col overflow-hidden">
 
         {/* Top Header */}

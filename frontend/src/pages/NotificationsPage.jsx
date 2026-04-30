@@ -42,32 +42,38 @@ function NotifCard({ notif, onToggleRead, onDelete, t }) {
 
   return (
     <div className={clsx(
-      'flex items-start gap-3 rounded-xl border bg-white dark:bg-slate-900 p-4 transition-all duration-200',
+      'group flex items-start gap-4 rounded-[2rem] border bg-white dark:bg-slate-900 p-5 transition-all duration-300 hover:shadow-hover hover:-translate-y-0.5',
       notif.is_read
-        ? 'border-gray-100 dark:border-white/10'
-        : clsx('border-l-4', borderColor, 'border-t border-r border-b border-gray-100 dark:border-white/10')
+        ? 'border-slate-100 dark:border-white/5 opacity-80 hover:opacity-100'
+        : clsx('border-l-4', borderColor, 'border-t border-r border-b border-slate-100 dark:border-white/10 shadow-sm shadow-blue-500/5')
     )}>
+      <div className={clsx('w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0', typeColor)}>
+        <Bell size={20} />
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className={clsx('text-[11px] font-medium px-2 py-0.5 rounded-full', typeColor)}>
+        <div className="flex items-center gap-3 mb-1.5 flex-wrap">
+          <span className={clsx('text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg', typeColor)}>
             {t(`notifications.types.${notif.type}`)}
           </span>
           {notif.is_required && (
-            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
               {t('notifications.important')}
             </span>
           )}
           {!notif.is_read && (
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+            <span className="flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-sakan-blue opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-sakan-blue"></span>
+            </span>
           )}
-          <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto">{timeAgo(notif.created_at, t)}</span>
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 ml-auto">{timeAgo(notif.created_at, t)}</span>
         </div>
-        <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed mb-2">{notif.message}</p>
-        <div className="flex items-center gap-4">
-          <button onClick={() => onToggleRead(notif.id)} className="text-xs text-blue-500 hover:underline">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed mb-3">{notif.message}</p>
+        <div className="flex items-center gap-4 border-t border-slate-50 dark:border-slate-800/50 pt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => onToggleRead(notif.id)} className="text-xs font-bold text-sakan-blue hover:underline">
             {notif.is_read ? t('notifications.mark_unread') : t('notifications.mark_read')}
           </button>
-          <button onClick={() => onDelete(notif.id)} className="text-xs text-red-400 hover:underline">
+          <button onClick={() => onDelete(notif.id)} className="text-xs font-bold text-red-400 hover:underline">
             {t('notifications.remove')}
           </button>
         </div>
@@ -175,7 +181,7 @@ export default function NotificationsPage() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/50 w-fit rounded-2xl">
         {[
           { key: 'all',    label: t('notifications.all') },
           { key: 'unread', label: `${t('notifications.unread')}${unreadNotifications > 0 ? ` (${unreadNotifications})` : ''}` },
@@ -184,10 +190,10 @@ export default function NotificationsPage() {
             key={key}
             onClick={() => setTab(key)}
             className={clsx(
-              'px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+              'px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300',
               tab === key
-                ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                : 'text-gray-400 hover:text-gray-600 dark:hover:text-slate-300'
+                ? 'bg-white dark:bg-slate-700 text-sakan-blue shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
             )}
           >
             {label}

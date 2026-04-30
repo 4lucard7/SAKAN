@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { maintenanceAPI, voitureAPI, voituresAPI } from '../services/api'
-import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge, Select } from '../components/Ui'
-import { Plus, Pencil, Trash2, Wrench, AlertTriangle } from 'lucide-react'
+import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge, Select, PriorityPills, SectionHeader } from '../components/Ui'
+import { Plus, Pencil, Trash2, Wrench, AlertTriangle, Info, Gauge, Calendar, DollarSign } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
@@ -33,59 +33,79 @@ function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
     setForm(f => ({ ...f, [name]: value }))
   }
   return (
-    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label={t('vehicle.car')} required>
-          <select name="car_id" required value={form.car_id} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-            {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
-          </select>
-        </Field>
-        <Field label={t('maintenance.part_name')} required>
-          <input list="part_names" name="part_name" required value={form.part_name} onChange={h}
-            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Vidange, Pneus, Freins..." />
-          <datalist id="part_names">
-            {partNames.map(part => <option key={part} value={part} />)}
-          </datalist>
-        </Field>
+    <form onSubmit={e => { e.preventDefault(); onSave(form) }} className="flex flex-col gap-8">
+      <div>
+        <SectionHeader title={t('common.info')} icon={Info} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label={t('vehicle.car')} required>
+            <Select name="car_id" required value={form.car_id} onChange={h}>
+              {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
+            </Select>
+          </Field>
+          <Field label={t('maintenance.part_name')} required>
+            <input list="part_names" name="part_name" required value={form.part_name} onChange={h}
+              className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="Vidange, Pneus, Freins..." />
+            <datalist id="part_names">
+              {partNames.map(part => <option key={part} value={part} />)}
+            </datalist>
+          </Field>
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label={t('vehicle.current_km')} required>
-          <input name="kilometrage_actuel" type="number" min="0" required
-            value={form.kilometrage_actuel} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="45200" />
-        </Field>
-        <Field label={t('maintenance.interval')}>
-          <input name="limit_km" type="number" min="0"
-            value={form.limit_km} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="10000" />
-        </Field>
+
+      <div>
+        <SectionHeader title={t('vehicle.current_km')} icon={Gauge} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label={t('vehicle.current_km')} required>
+            <input name="kilometrage_actuel" type="number" min="0" required
+              value={form.kilometrage_actuel} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="45200" />
+          </Field>
+          <Field label={t('maintenance.interval')}>
+            <input name="limit_km" type="number" min="0"
+              value={form.limit_km} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="10000" />
+          </Field>
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <Field label={t('maintenance.last_done').split('/')[0]} required>
-          <input name="last_change_date" type="date" required
-            value={form.last_change_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-        </Field>
-        <Field label={t('maintenance.duration_months')}>
-          <input name="duration" type="number" min="1" max="120"
-            value={form.duration} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="6" />
-        </Field>
+
+      <div>
+        <SectionHeader title={t('common.scheduling')} icon={Calendar} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label={t('maintenance.last_done').split('/')[0]} required>
+            <input name="last_change_date" type="date" required
+              value={form.last_change_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+          </Field>
+          <Field label={t('maintenance.duration_months')}>
+            <input name="duration" type="number" min="1" max="120"
+              value={form.duration} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="6" />
+          </Field>
+        </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Field label={`${t('maintenance.cost')} (MAD)`}>
-          <input name="cost" type="number" min="0" step="0.01"
-            value={form.cost} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
-        </Field>
-        <Field label="Priorité">
-          <select name="priority" value={form.priority} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-            <option value="normal">Normal</option>
-            <option value="important">Important</option>
-          </select>
-        </Field>
+
+      <div>
+        <SectionHeader title={t('common.details')} icon={DollarSign} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <Field label={`${t('maintenance.cost')} (MAD)`}>
+            <input name="cost" type="number" min="0" step="0.01"
+              value={form.cost} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
+          </Field>
+          <Field label="Priorité">
+            <PriorityPills 
+              value={form.priority} 
+              onChange={val => setForm(f => ({ ...f, priority: val }))}
+              options={[
+                { label: 'Normal', value: 'normal' },
+                { label: 'Important', value: 'important', color: 'red' }
+              ]}
+            />
+          </Field>
+        </div>
         <Field label={t('common.notes')}>
-          <input name="notes" value={form.notes} onChange={h}
-            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('common.optional')} />
+          <textarea name="notes" value={form.notes} onChange={h}
+            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white resize-none h-24" placeholder={t('common.optional')} />
         </Field>
       </div>
-      <div className="flex justify-end pt-2">
-        <button type="submit" disabled={loading} className="btn-primary">
+
+      <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button type="submit" disabled={loading} className="btn-primary px-10 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20 transform active:scale-95 transition-all">
           {loading ? t('common.loading') : t('common.save')}
         </button>
       </div>
@@ -187,8 +207,8 @@ export default function MaintenancePage() {
         title={t('maintenance.title')}
         subtitle={t('vehicle.subtitle')}
         action={
-          <button className="btn-primary" onClick={() => setModal('create')} disabled={!selectedCar}>
-            <Plus size={16} /> {t('maintenance.add')}
+          <button className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg shadow-sakan-blue/20 hover:scale-105 transition-all active:scale-95" onClick={() => setModal('create')} disabled={!selectedCar}>
+            <Plus size={18} /> {t('maintenance.add')}
           </button>
         }
       />
@@ -239,7 +259,16 @@ export default function MaintenancePage() {
         </div>
 
         {maintenances.length === 0 ? (
-          <EmptyState icon={<Wrench size={15} />} title={t('common.no_data')} description={t('maintenance.desc_no_maintenance')} />
+          <EmptyState 
+            icon={<Wrench size={64} className="opacity-20" />} 
+            title={t('common.no_data')} 
+            description={t('maintenance.desc_no_maintenance')} 
+            action={
+              <button className="btn-primary px-8 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20" onClick={() => setModal('create')}>
+                <Plus size={20} className="mr-2" /> {t('maintenance.add')}
+              </button>
+            }
+          />
         ) : (
           <>
             {/* Desktop Table */}

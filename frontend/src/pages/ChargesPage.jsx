@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { chargesAPI } from '../services/api'
-import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select } from '../components/Ui'
-import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronUp, Clock, CheckCircle, FileText } from 'lucide-react'
+import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, StatutBadge, Field, Select, PriorityPills, SectionHeader } from '../components/Ui'
+import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronUp, Clock, CheckCircle, FileText, Info, DollarSign, Calendar } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
@@ -54,48 +54,62 @@ function ChargeForm({ initial = {}, onSave, loading }) {
     onSave({ ...form, jour_echeance: Number(form.jour_echeance) })
   }
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 ">
-      <Field label={t('charges.label')} required>
-        <input name="libelle" required value={form.libelle} onChange={h}
-          className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('charges.placeholder_libelle')} />
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label={t('charges.category')}>
-          <Select name="categorie" value={form.categorie} onChange={h}>
-            <option value="">{t('common.loading')}</option>
-            {['logement', 'internet', 'transport', 'alimentation', 'santé', 'éducation', 'loisirs', 'autre'].map(c => (
-              <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
-            ))}
-          </Select>
-        </Field>
-        <Field label={`${t('common.amount')} (MAD)`} required>
-          <input name="montant" type="number" min="0.01" step="0.01" required
-            value={form.montant} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+      <div>
+        <SectionHeader title={t('common.info')} icon={Info} />
+        <Field label={t('charges.label')} required>
+          <input name="libelle" required value={form.libelle} onChange={h}
+            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder={t('charges.placeholder_libelle')} />
         </Field>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Field label={t('charges.due_day')} required>
-          <input name="jour_echeance_date" type="date" required
-            value={form.jour_echeance_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
-        </Field>
-        <Field label={t('common.status')}>
-          <select name="statut" value={form.statut} onChange={h}
-            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-            <option value="en_attente">{t('status.en_attente')}</option>
-            <option value="payee">{t('status.payee')}</option>
-            <option value="en_retard">{t('status.en_retard')}</option>
-          </select>
-        </Field>
+
+      <div>
+        <SectionHeader title={t('common.details')} icon={DollarSign} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Field label={t('charges.category')}>
+            <Select name="categorie" value={form.categorie} onChange={h}>
+              <option value="">{t('common.loading')}</option>
+              {['logement', 'internet', 'transport', 'alimentation', 'santé', 'éducation', 'loisirs', 'autre'].map(c => (
+                <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label={`${t('common.amount')} (MAD)`} required>
+            <input name="montant" type="number" min="0.01" step="0.01" required
+              value={form.montant} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" placeholder="0.00" />
+          </Field>
+        </div>
+      </div>
+
+      <div>
+        <SectionHeader title={t('common.scheduling')} icon={Calendar} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <Field label={t('charges.due_day')} required>
+            <input name="jour_echeance_date" type="date" required
+              value={form.jour_echeance_date} onChange={h} className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white" />
+          </Field>
+          <Field label={t('common.status')}>
+            <Select name="statut" value={form.statut} onChange={h}>
+              <option value="en_attente">{t('status.en_attente')}</option>
+              <option value="payee">{t('status.payee')}</option>
+              <option value="en_retard">{t('status.en_retard')}</option>
+            </Select>
+          </Field>
+        </div>
         <Field label="Priorité">
-          <select name="priority" value={form.priority} onChange={h}
-            className="input dark:bg-slate-800 dark:border-slate-700 dark:text-white">
-            <option value="normal">Normal</option>
-            <option value="important">Important</option>
-          </select>
+          <PriorityPills 
+            value={form.priority} 
+            onChange={val => setForm(f => ({ ...f, priority: val }))}
+            options={[
+              { label: 'Normal', value: 'normal' },
+              { label: 'Important', value: 'important', color: 'red' }
+            ]}
+          />
         </Field>
       </div>
-      <div className="flex justify-end pt-2">
-        <button type="submit" disabled={loading} className="btn-primary">
+
+      <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+        <button type="submit" disabled={loading} className="btn-primary px-10 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20 transform active:scale-95 transition-all">
           {loading ? t('common.loading') : t('common.save')}
         </button>
       </div>
@@ -361,30 +375,30 @@ export default function ChargesPage() {
         title={t('charges.title')}
         subtitle={t('charges.subtitle')}
         action={
-          <button className="btn-primary" onClick={() => setModal('create')}>
-            <Plus size={16} /> {t('charges.add_charge')}
+          <button className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg shadow-sakan-blue/20 hover:scale-105 transition-all active:scale-95" onClick={() => setModal('create')}>
+            <Plus size={18} /> {t('charges.add_charge')}
           </button>
         }
       />
 
       {/* Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="card flex items-center gap-4 dark:bg-slate-900 dark:border-white/10 transition-colors">
-          <div className="w-11 h-11 bg-yellow-100 dark:bg-yellow-900/30 rounded-xl flex items-center justify-center">
-            <Clock size={20} className="text-yellow-600 dark:text-yellow-400" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="card group p-6 flex items-center gap-5 dark:bg-slate-900 border-none shadow-card hover:shadow-hover transition-all duration-300">
+          <div className="w-14 h-14 bg-yellow-100 dark:bg-yellow-900/30 rounded-3xl flex items-center justify-center transition-transform group-hover:scale-110">
+            <Clock size={24} className="text-yellow-600 dark:text-yellow-400" />
           </div>
           <div>
-            <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">{t('charges.total_pending')}</p>
-            <p className="font-display font-bold text-2xl text-gray-800 dark:text-white transition-colors">{totalAttente.toLocaleString()} MAD</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{t('charges.total_pending')}</p>
+            <p className="font-display font-black text-3xl text-slate-900 dark:text-white mt-1">{totalAttente.toLocaleString()} MAD</p>
           </div>
         </div>
-        <div className="card flex items-center gap-4 dark:bg-slate-900 dark:border-white/10 transition-colors">
-          <div className="w-11 h-11 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center">
-            <CheckCircle size={20} className="text-green-600 dark:text-green-400" />
+        <div className="card group p-6 flex items-center gap-5 dark:bg-slate-900 border-none shadow-card hover:shadow-hover transition-all duration-300">
+          <div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-3xl flex items-center justify-center transition-transform group-hover:scale-110">
+            <CheckCircle size={24} className="text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">{t('charges.total_paid')}</p>
-            <p className="font-display font-bold text-2xl text-gray-800 dark:text-white transition-colors">{totalPaye.toLocaleString()} MAD</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">{t('charges.total_paid')}</p>
+            <p className="font-display font-black text-3xl text-slate-900 dark:text-white mt-1">{totalPaye.toLocaleString()} MAD</p>
           </div>
         </div>
       </div>
@@ -398,9 +412,18 @@ export default function ChargesPage() {
 
       {/* Grouped by month */}
       {loading ? (
-        <div className="flex justify-center py-16"><Spinner size={32} /></div>
+        <div className="flex justify-center py-20"><Spinner size={40} /></div>
       ) : sortedGroups.length === 0 ? (
-        <EmptyState icon={<FileText size={48} />} title={t('common.no_data')} description={t('charges.subtitle')} />
+        <EmptyState 
+          icon={<FileText size={64} className="opacity-20" />} 
+          title={t('common.no_data')} 
+          description={t('charges.subtitle')} 
+          action={
+            <button className="btn-primary px-8 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20" onClick={() => setModal('create')}>
+              <Plus size={20} className="mr-2" /> {t('charges.add_charge')}
+            </button>
+          }
+        />
       ) : (
         <div className="flex flex-col gap-4">
           {sortedGroups.map(([key, { mois, annee, charges: ch }]) => (

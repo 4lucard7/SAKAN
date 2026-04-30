@@ -214,57 +214,71 @@ export default function VoiturePage() {
       />
 
       {voitures.length === 0 ? (
-        <div className="card flex flex-col items-center py-16 gap-4 dark:bg-slate-900 dark:border-white/10">
-          <Car size={48} className="text-gray-200 dark:text-slate-800" />
-          <p className="font-display font-semibold text-gray-400 dark:text-slate-600">{t('vehicle.no_car')}</p>
-          <button className="btn-primary" onClick={() => setModal('create')}>
-            <Plus size={15} /> {t('vehicle.add_car')}
-          </button>
-        </div>
+        <EmptyState 
+          icon={<Car size={64} className="opacity-20" />} 
+          title={t('vehicle.no_car')} 
+          description={t('vehicle.subtitle')} 
+          action={
+            <button className="btn-primary px-8 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20" onClick={() => setModal('create')}>
+              <Plus size={20} className="mr-2" /> {t('vehicle.add_car')}
+            </button>
+          }
+        />
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-[2fr_1fr] gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
             {voitures.map(car => (
               <div
                 key={car.id}
                 onClick={() => setSelected(car)}
-                className={`card p-5 rounded-3xl border transition cursor-pointer ${selected?.id === car.id ? 'border-sakan-blue/30 bg-sakan-blue/5 dark:bg-sakan-blue/10' : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`}
+                className={`group relative card p-6 rounded-[2.5rem] border-2 transition-all duration-500 cursor-pointer overflow-hidden ${selected?.id === car.id ? 'border-sakan-blue bg-sakan-blue/5 dark:bg-sakan-blue/10 shadow-xl shadow-sakan-blue/10' : 'border-transparent hover:border-slate-100 dark:hover:border-slate-800 bg-white dark:bg-slate-900 shadow-card hover:shadow-hover'}`}
               >
-                <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-start justify-between gap-3 mb-6">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400 font-semibold">{t('vehicle.name')}</p>
-                    <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white">{car.car_name}</h3>
+                    <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 mb-1">{t('vehicle.name')}</p>
+                    <h3 className="font-display font-black text-xl text-slate-900 dark:text-white group-hover:text-sakan-blue transition-colors">{car.car_name}</h3>
                   </div>
-                  <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-primary-100 dark:bg-primary-900/30">
-                    <Car size={20} className="text-sakan-blue dark:text-sakan" />
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 ${selected?.id === car.id ? 'bg-sakan-blue text-white rotate-12' : 'bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:bg-sakan-blue/10 group-hover:text-sakan-blue'}`}>
+                    <Car size={28} />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
-                  <div className="rounded-2xl bg-gray-50 dark:bg-slate-800 p-4">
-                    <p className="text-xs text-gray-400 dark:text-slate-500 uppercase tracking-wide font-medium">{t('vehicle.current_km')}</p>
-                    <p className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{formatKm(car.current_km)} km</p>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="rounded-3xl bg-slate-50 dark:bg-slate-800/50 p-5 group-hover:bg-white dark:group-hover:bg-slate-800 transition-colors">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Gauge size={14} className="text-slate-400" />
+                      <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest">{t('vehicle.current_km')}</p>
+                    </div>
+                    <p className="text-2xl font-black text-slate-900 dark:text-white">{formatKm(car.current_km)} <span className="text-sm font-bold text-slate-400 uppercase tracking-tighter">km</span></p>
                   </div>
+                  
                   <div className="flex flex-wrap gap-2">
-                    <span className="badge bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300">{car.assurance_expiry ? formatDate(car.assurance_expiry) : t('vehicle.no_document')}</span>
-                    <span className="badge bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">{car.vignette_expiry ? t('vehicle.vignette') : t('vehicle.no_document')}</span>
+                    {car.assurance_expiry ? (
+                      <span className="px-3 py-1.5 rounded-xl bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 text-[10px] font-black uppercase tracking-widest border border-green-100 dark:border-green-900/30">
+                        {formatDate(car.assurance_expiry)}
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1.5 rounded-xl bg-slate-50 text-slate-400 dark:bg-slate-800 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-100 dark:border-slate-800">
+                        {t('vehicle.no_document')}
+                      </span>
+                    )}
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between gap-2">
+                <div className="mt-6 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 duration-300">
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setModal({ voiture: car }) }}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-2xl hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                    className="p-3 text-slate-400 hover:text-sakan-blue hover:bg-sakan-blue/5 rounded-2xl transition-all"
                   >
-                    <Pencil size={14} /> {t('common.edit')}
+                    <Pencil size={18} />
                   </button>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setDeleting(car) }}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-100 rounded-2xl hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-800"
+                    className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                   >
-                    <Trash2 size={14} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>

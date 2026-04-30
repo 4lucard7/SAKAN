@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { tiersAPI } from '../services/api'
-import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, Field, Select } from '../components/Ui'
+import { Modal, ConfirmDialog, Avatar, PageHeader, EmptyState, Spinner, Field } from '../components/Ui'
 import { Plus, Pencil, Trash2, Search, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
@@ -88,14 +88,13 @@ export default function TiersPage() {
   }
 
   return (
-    <div className="fade-in flex flex-col gap-20">
+    <div className="fade-in flex flex-col gap-6">
       <PageHeader
         title={t('tiers.title')}
         action={
-          <button className="btn-primary" onClick={() => setModal('create')}>
-            <Plus size={16} /> {t('tiers.add_tier')}
+          <button className="btn-primary flex items-center gap-2 px-6 py-3 rounded-2xl shadow-lg shadow-sakan-blue/20 hover:scale-105 transition-all active:scale-95" onClick={() => setModal('create')}>
+            <Plus size={18} /> {t('tiers.add_tier')}
           </button>
-
         }
       />
 
@@ -111,9 +110,18 @@ export default function TiersPage() {
       {/* Table */}
       <div className="card p-0 overflow-hidden dark:bg-slate-900 dark:border-white/10 transition-colors">
         {loading ? (
-          <div className="flex justify-center py-16"><Spinner /></div>
+          <div className="flex justify-center py-20"><Spinner size={40} /></div>
         ) : filtered.length === 0 ? (
-          <EmptyState icon={<Users size={48} />} title={t('tiers.no_tiers')} description={t('tiers.desc_no_tiers')} />
+          <EmptyState 
+            icon={<Users size={64} className="opacity-20" />} 
+            title={t('tiers.no_tiers')} 
+            description={t('tiers.desc_no_tiers')} 
+            action={
+              <button className="btn-primary px-8 py-3 rounded-2xl shadow-xl shadow-sakan-blue/20" onClick={() => setModal('create')}>
+                <Plus size={20} className="mr-2" /> {t('tiers.add_tier')}
+              </button>
+            }
+          />
         ) : (
           <>
             {/* Desktop Table */}
@@ -194,6 +202,7 @@ export default function TiersPage() {
           </>
         )}
       </div>
+
       <div className="mt-5">
         <Modal open={!!modal} onClose={() => setModal(null)}
           title={modal === 'create' ? t('tiers.add_tier') : t('common.edit')}>
