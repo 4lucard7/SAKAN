@@ -116,7 +116,7 @@ export default function Layout({ children }) {
 
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto pb-4">
           {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
+            const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
             const Icon = item.icon;
             return (
               <Link

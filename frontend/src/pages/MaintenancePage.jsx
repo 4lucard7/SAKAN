@@ -5,26 +5,36 @@ import { Plus, Pencil, Trash2, Wrench, AlertTriangle, Info, Gauge, Calendar, Dol
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
-function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
+function MaintenanceForm({ initial, onSave, loading, voitures }) {
   const { t } = useTranslation()
   const partNames = [
     'Vidange', 'Pneus', 'Freins', 'Filtre à huile', 'Bougies', 'Courroie de distribution', 'Amortisseurs'
   ]
   const [form, setForm] = useState({
-    car_id: initial?.car_id || voitures[0]?.id || '',
+    car_id: initial?.car_id || voitures?.[0]?.id || '',
     part_name: initial?.part_name || '',
-    car_id: '', part_name: '', kilometrage_actuel: '', limit_km: '',
-    last_change_date: '', duration: '', cost: '', notes: '', priority: 'normal',
-    ...initial,
+    kilometrage_actuel: initial?.kilometrage_actuel || '',
+    limit_km: initial?.limit_km || '',
+    last_change_date: initial?.last_change_date || '',
+    duration: initial?.duration || '',
+    cost: initial?.cost || '',
+    notes: initial?.notes || '',
+    priority: initial?.priority || 'normal',
   })
 
   useEffect(() => {
     setForm({
-      car_id: '', part_name: '', kilometrage_actuel: '', limit_km: '',
-      last_change_date: '', duration: '', cost: '', notes: '', priority: 'normal',
-      ...initial,
+      car_id: initial?.car_id || voitures?.[0]?.id || '',
+      part_name: initial?.part_name || '',
+      kilometrage_actuel: initial?.kilometrage_actuel || '',
+      limit_km: initial?.limit_km || '',
+      last_change_date: initial?.last_change_date || '',
+      duration: initial?.duration || '',
+      cost: initial?.cost || '',
+      notes: initial?.notes || '',
+      priority: initial?.priority || 'normal',
     })
-  }, [initial])
+  }, [initial, voitures])
 
   const h = e => {
     const { name, value } = e.target
@@ -44,16 +54,15 @@ function MaintenanceForm({ initial = {}, onSave, loading, voitures = [] }) {
             <label className={labelCls}>{t('vehicle.car')} <span className="text-red-500">*</span></label>
             <select name="car_id" required value={form.car_id} onChange={h} className={inputCls}>
               <option value="">Sélectionner une voiture</option>
-              {voitures.map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
+              {(voitures || []).map(v => <option key={v.id} value={v.id}>{v.car_name}</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
             <label className={labelCls}>{t('maintenance.part_name')} <span className="text-red-500">*</span></label>
-            <input list="part_names" name="part_name" required value={form.part_name} onChange={h}
-              className={inputCls} placeholder="Ex: Vidange, Pneus..." />
-            <datalist id="part_names">
-              {partNames.map(part => <option key={part} value={part} />)}
-            </datalist>
+            <select name="part_name" required value={form.part_name} onChange={h} className={inputCls}>
+              <option value="" disabled>Sélectionner une pièce</option>
+              {partNames.map(part => <option key={part} value={part}>{part}</option>)}
+            </select>
           </div>
         </div>
 
