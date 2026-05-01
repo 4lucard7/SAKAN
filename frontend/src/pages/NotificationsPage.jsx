@@ -188,7 +188,9 @@ export default function NotificationsPage() {
     } catch { toast.error(t('notifications.error')) }
   }
 
-  const visible = tab === 'unread' ? notifs.filter(n => !n.is_read) : notifs
+  const visible = tab === 'all' ? notifs :
+                  tab === 'unread' ? notifs.filter(n => !n.is_read) :
+                  notifs.filter(n => n.type === tab)
 
   return (
     <div className="fade-in flex flex-col gap-5">
@@ -208,16 +210,20 @@ export default function NotificationsPage() {
       />
 
       {/* Tabs */}
-      <div className="flex gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/50 w-fit rounded-2xl">
+      <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/50 w-fit rounded-2xl">
         {[
           { key: 'all',    label: t('notifications.all') },
           { key: 'unread', label: `${t('notifications.unread')}${unreadNotifications > 0 ? ` (${unreadNotifications})` : ''}` },
+          { key: 'finances', label: t('notifications.types.finances') },
+          { key: 'charges', label: t('notifications.types.charges') },
+          { key: 'responsabilite', label: t('notifications.types.responsabilite') },
+          { key: 'maintenance', label: t('notifications.types.maintenance') },
         ].map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={clsx(
-              'px-6 py-2 rounded-xl text-sm font-bold transition-all duration-300',
+              'px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300',
               tab === key
                 ? 'bg-white dark:bg-slate-700 text-sakan-blue shadow-sm'
                 : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'

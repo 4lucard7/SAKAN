@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { maintenanceAPI, voitureAPI, voituresAPI } from '../services/api'
-import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, Field, StatutBadge, Select, PriorityPills, SectionHeader } from '../components/Ui'
-import { Plus, Pencil, Trash2, Wrench, AlertTriangle, Info, Gauge, Calendar, DollarSign } from 'lucide-react'
+import { Modal, ConfirmDialog, PageHeader, EmptyState, Spinner, StatutBadge } from '../components/Ui'
+import { Plus, Pencil, Trash2, Wrench, AlertTriangle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
