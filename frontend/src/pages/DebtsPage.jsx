@@ -300,6 +300,12 @@ export default function DebtsPage() {
                           className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 text-gray-400 hover:text-red-500 transition-colors">
                           <Trash2 size={14} />
                         </button>
+                        {Number(d.reste) > 0 && (
+                          <button onClick={() => setRemb(d)}
+                            className="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 text-gray-400 hover:text-green-600 transition-colors" title={t('common.rembourser')}>
+                            <MoreVertical size={14} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
