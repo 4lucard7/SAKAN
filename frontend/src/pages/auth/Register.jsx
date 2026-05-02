@@ -27,7 +27,7 @@ export default function RegisterPage() {
       setNameError(value.trim()==="")
     }
     if (name === "password") {
-      setPasswordError(value.trim() === "")
+      setPwdError(value.length < 8)
     }
 
   }
@@ -38,9 +38,9 @@ export default function RegisterPage() {
     setEmailError(!isvalidEmail);
     const isNameEmpty=form.name.trim()==="";
     setNameError(isNameEmpty);
-    const isvalidPassword=form.password.trim() !== "";
+    const isvalidPassword=form.password.length >= 8;
     setPwdError(!isvalidPassword)
-    if(isNameEmpty || !isvalidEmail ||!isvalidPassword) return;
+    if(isNameEmpty || !isvalidEmail || !isvalidPassword) return;
     if(form.password !== form.password_confirmation){
       setMatch_pwd_error(true)
       return;
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0" />
                   <span className="text-xs text-red-500">
-                    Saisie un mot de passe de 8 caractére
+                    Le mot de passe doit contenir au moins 8 caractères
                   </span>
                 </div>
                )}
