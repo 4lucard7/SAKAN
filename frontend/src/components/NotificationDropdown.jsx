@@ -44,7 +44,7 @@ function DropdownNotifItem({ notif, onRead, onDelete }) {
     >
       {/* Unread indicator */}
       {!notif.is_read && (
-        <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-sakan-blue animate-pulse" />
+        <div className="absolute start-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-sakan-blue animate-pulse" />
       )}
 
       {/* Type icon */}
@@ -243,14 +243,14 @@ export default function NotificationDropdown() {
 
         {/* Unread badge */}
         {unreadNotifications > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-red-500 rounded-full shadow-lg ring-2 ring-white dark:ring-slate-900 animate-bounce-subtle">
+          <span className="absolute -top-1 -right-1 rtl:-left-1 rtl:right-auto min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold text-white bg-red-500 rounded-full shadow-lg ring-2 ring-white dark:ring-slate-900 animate-bounce-subtle">
             {unreadNotifications > 99 ? '99+' : unreadNotifications}
           </span>
         )}
 
         {/* Pulse ring for new notifications */}
         {unreadNotifications > 0 && (
-          <span className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-red-400 rounded-full animate-ping opacity-30 pointer-events-none" />
+          <span className="absolute -top-1 -right-1 rtl:-left-1 rtl:right-auto w-[18px] h-[18px] bg-red-400 rounded-full animate-ping opacity-30 pointer-events-none" />
         )}
       </button>
 
@@ -259,7 +259,7 @@ export default function NotificationDropdown() {
         <div
           ref={dropdownRef}
           className={clsx(
-            'absolute top-full mt-2 right-0 w-[380px] max-h-[520px] overflow-hidden',
+            'absolute top-full mt-2 end-0 rtl:right-auto rtl:left-0 w-[380px] max-h-[520px] overflow-hidden',
             'bg-white dark:bg-slate-900 rounded-2xl',
             'shadow-2xl shadow-gray-200/80 dark:shadow-black/40',
             'border border-gray-100 dark:border-slate-800',
@@ -337,7 +337,7 @@ export default function NotificationDropdown() {
                 className="flex items-center justify-center gap-2 py-3 text-xs font-semibold text-sakan-blue hover:text-blue-700 dark:hover:text-blue-300 transition-colors hover:bg-blue-50/50 dark:hover:bg-blue-900/10"
               >
                 View all notifications
-                <ArrowRight size={13} />
+                <ArrowRight size={13} className="rtl:rotate-180" />
               </Link>
             </div>
           )}
