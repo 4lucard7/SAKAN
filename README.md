@@ -21,12 +21,21 @@
 ## 🚀 Fonctionnalités Principales
 
 - 📊 **Tableau de Bord Dynamique** : Visualisation des statistiques clés et graphiques de performance (Recharts).
-- 👤 **Gestion des Tiers** : Système CRUD complet pour gérer vos contacts et partenaires.
-- 💸 **Suivi des Dettes & Créances** : Gestion précise des montants dus et remboursés.
-- 🚗 **Gestion de Véhicule** : Suivi des informations du véhicule et historique complet des maintenances.
+- 👤 **Gestion des Tiers** : Système CRUD complet (interface modale) pour gérer vos contacts et partenaires.
+- 💸 **Suivi des Dettes & Créances** : Gestion précise des montants dus et remboursés via un dashboard financier moderne.
+- 🚗 **Gestion de Véhicule** : Suivi des informations, historique des maintenances, et système de suivi documentaire par statut.
 - 📑 **Charges Fixes** : Automatisation et historique du paiement des charges récurrentes.
-- 🔔 **Système de Notifications** : Alertes en temps réel pour les échéances et les mises à jour importantes.
+- 🔔 **Système de Notifications** : Alertes en temps réel, notifications push et système automatisé en arrière-plan (Task Scheduler).
 - 🔐 **Authentification Sécurisée** : Gestion des utilisateurs avec Laravel Sanctum.
+
+---
+
+## 🆕 Dernières Mises à Jour
+
+- **Système de Notifications Automatisé** : Fiabilisation des alertes en temps réel avec un planificateur de tâches en arrière-plan et synchronisation d'état (soft-delete).
+- **Dashboard Financier Premium** : Modernisation de l'interface des pages Dettes et Tiers avec des tableaux de données réactifs et des filtres avancés.
+- **Module Véhicule Amélioré** : Nouveau composant de sélection de véhicule avec indicateurs visuels de progression pour les documents et aperçus de maintenance.
+- **Optimisation de l'UX (CRUD)** : Restauration de l'expérience utilisateur par fenêtres modales pour une gestion plus fluide des entités.
 
 ---
 
@@ -154,29 +163,13 @@ SAKAN/
 - [ ] Support multilingue (FR/EN/AR).
 - [ ] Application mobile (React Native).
 
----
 
-## 🤝 Contribution
-
-1. Forkez le projet.
-2. Créez votre branche (`git checkout -b feature/AmazingFeature`).
-3. Commit avec un message clair (`git commit -m 'Add some AmazingFeature'`).
-4. Push vers la branche (`git push origin feature/AmazingFeature`).
-5. Ouvrez une Pull Request.
-
----
-
-## 📄 Licence
-
-Distribué sous la licence MIT. Voir `LICENSE` pour plus d'informations.
-
----
 
 ## 👤 Auteur(s)
 
 Réalisé avec ❤️ par :
-- **Mohamed** - [GitHub](https://github.com/votre-user-mohamed)
-- **Ayoub** - [GitHub](https://github.com/votre-user-ayoub)
+- **Mohamed** - [GitHub](https://github.com/4lucard7)
+- **Ayoub** - [GitHub](https://github.com/ayoubalouhmy)
 
 ---
 <p align="center">Projet SAKAN - 2026</p>
