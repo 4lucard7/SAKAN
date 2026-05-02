@@ -59,10 +59,18 @@ function MaintenanceForm({ initial, onSave, loading, voitures }) {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className={labelCls}>{t('maintenance.part_name')} <span className="text-red-500">*</span></label>
-            <select name="part_name" required value={form.part_name} onChange={h} className={inputCls}>
-              <option value="" disabled>Sélectionner une pièce</option>
-              {partNames.map(part => <option key={part} value={part}>{part}</option>)}
-            </select>
+            <input 
+              name="part_name" 
+              list="part-names-list"
+              required 
+              value={form.part_name} 
+              onChange={h} 
+              className={inputCls}
+              placeholder="Ex: Vidange, Batterie..." 
+            />
+            <datalist id="part-names-list">
+              {partNames.map(part => <option key={part} value={part} />)}
+            </datalist>
           </div>
         </div>
 
